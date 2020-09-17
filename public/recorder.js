@@ -16,6 +16,9 @@ let recordedChunks = [];
 let recording;
 let stream;
 
+const tone = new Audio("audios/tone.mp3");
+tone.loop = true;
+
 (async function() {
   langs = await fetch("lang.json").then(r => r.json());
   lyrics = await fetch("lyrics.json").then(r => r.json());
@@ -78,7 +81,11 @@ recordBtn.addEventListener("click", async () => {
   stream = await navigator.mediaDevices.getUserMedia({audio: true});
   recorder = new MediaRecorder(stream, {mimeType: "audio/webm"});
   recorder.ondataavailable = event => recordedChunks.push(event.data);
+  tone.play();
   for (i = 3; i > 0; i--) {
+    if (i == 1) {
+      tone.pause();
+    }
     karaoke.textContent = i;
     await wait(1);
   }
