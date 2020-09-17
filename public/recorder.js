@@ -78,12 +78,12 @@ recordBtn.addEventListener("click", async () => {
   stream = await navigator.mediaDevices.getUserMedia({audio: true});
   recorder = new MediaRecorder(stream, {mimeType: "audio/webm"});
   recorder.ondataavailable = event => recordedChunks.push(event.data);
-  recorder.start(100);
   for (i = 3; i > 0; i--) {
     karaoke.textContent = i;
     await wait(1);
   }
   ref.controls = false;
+  recorder.start(100);
   ref.play();
   onAir = true;
 });
