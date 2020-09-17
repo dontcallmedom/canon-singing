@@ -24,14 +24,16 @@ app.post('/upload', function(req, res) {
 
   let audioFile = req.files.recording;
   // generate random name
-  let name = nanoid() + ".mp3";
+  let shortname = nanoid();
+  let name =  shortname + ".mp3";
 
   // Use the mv() method to place the file somewhere on your server
-  audioFile.mv(path.join(__dirname, '_submissions/audios/' + name), function(err) {
+  audioFile.mv(path.join(__dirname, '_submissions/audio/' + name), function(err) {
     if (err)
       return res.status(500).send(err);
-    // TODO: Add data to audioData[name] and save name.json in _submissions/data
-    res.send('File uploaded!');
+    let data = {author: req.body.author, lang: req.body.lang};
+    audioData[shortname] = data;
+    fs.writeFile(path.join(__dirname, '_submissions/data/' + shortname + '.json')).then(() => res.send('File uploaded!'));
   });
 });
 
