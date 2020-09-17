@@ -1,0 +1,50 @@
+{
+  "fr": [
+    "Frère Jacques, Frère Jacques",
+    "Dormez-vous ? Dormez-Vous ?",
+    "Sonnez les matines ! Sonnez les matines !",
+    "Ding Ding Dong ! Ding Ding Dong !"
+  ],
+  "en": [
+    "Are you sleeping, Are you sleeping,",
+    "Brother John? Brother John?",
+    "Morning bells are ringing, Morning bells are ringing.",
+    "Ding, dang, dong. Ding, dang, dong. "
+  ],
+  "de": [
+    "Bruder Jakob, Bruder Jakob,",
+    "Schläfst du noch? Schläfst du noch?",
+    "Hörst du nicht die Glocken? Hörst du nicht die Glocken?",
+    "Ding, dang, dong! Ding, dang, dong! "
+  ],
+  "es": [
+    "Martinillo, martinillo",
+    "Donde esta, donde esta",
+    "Toca la campana, toca la campana",
+    "Din, don , dan, din, don, dan"
+  ],
+  "zh-hans": [
+    "两只老虎,两只老虎",
+    "跑得快,跑得快",
+    "一只没有耳朵,一只没有尾巴",
+    "真奇怪,真奇怪"
+  ],
+  "ja": [
+    "ぐーちょきぱーで　ぐーちょきぱーで",
+    "なにつくろ　なにつくろ",
+    "みぎてが　ちょきで　ひだりてもちょきで",
+    "かにさん　かにさん"
+  ],
+  "nl": [
+    "Broeder Jacob, Broeder Jacob,",
+    "Slaapt gij nog? Slaapt gij nog?",
+    "Hoor de klokken luiden, Hoor de klokken luiden,",
+    "Bim bam bom, Bim bam bom."
+  ],
+  "ar": [
+    " ﺪق الجرس، دق الجرس",
+    "اسمعوا، اسمعوا",
+    "صوته جميل, صوته جميل",
+    {"lang": "en", "string": "Ding Dang Dong, Ding Dang Dong"}
+  ]
+}

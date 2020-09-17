@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  <meta charset=utf-8>
+  <title>Canon Singing Recorder</title>
+  <style>
+    #karaoke {
+    width: 15em;
+    height: 4em;
+    background-color: #efe;
+    font-size:2em;
+    }
+  </style>
+  </head>
+  <body>
+    <p>Status: <span id="status">Loading…</span></p>
+    <div id=karaoke>
+
+    </div>
+    <audio controls src="audios/reference.mp3" id=ref></audio>
+    <form>
+      <select id=lang name="lang">
+      </select>
+    </form>
+    <button id=record>Play reference and Record</button>
+    <button disabled id="playrecord">Replay recorded song</button>
+
+    <form id=formupload action="upload" method=post>
+      <fieldset>
+        <legend>Upload information</legend>
+        <p><label>Your name: <input disabled id=singer type=text name=singer></label> (feel free to use a pseudo - this will be used to associate a name to the recording)</p>
+        <p><label>Language: <select disabled name=lang id=lang2></select></p>
+        <button type=submit disabled id=upload>Upload recorded song</button>
+    </form>
+    <script src="recorder.js"></script>
+  </body>
+</html>

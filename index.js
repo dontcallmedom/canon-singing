@@ -11,14 +11,16 @@ const app = express();
 app.use(express.static('public'));
 app.use('/audios', express.static('_submissions/audio'));
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(fileUpload());
 
 const audioData = {};
 
 app.post('/upload', function(req, res) {
+  console.log(req);
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).send('No files were uploaded.');
   }
-  if (!req.body || !req.body.author || !req.body.lang) {
+  if (!req.body || !req.body.singer || !req.body.lang) {
     return res.status(400).send('Missing metadata about upload.');
   }
 
@@ -31,7 +33,7 @@ app.post('/upload', function(req, res) {
   audioFile.mv(path.join(__dirname, '_submissions/audio/' + name), function(err) {
     if (err)
       return res.status(500).send(err);
-    let data = {author: req.body.author, lang: req.body.lang};
+    let data = {author: req.body.singer, lang: req.body.lang};
     audioData[shortname] = data;
     fs.writeFile(path.join(__dirname, '_submissions/data/' + shortname + '.json')).then(() => res.send('File uploaded!'));
   });
