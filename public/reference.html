@@ -1,11 +1,37 @@
 <!doctype html>
 <html lang="en">
   <head>
-  <meta charset=utf-8>
-  <title>Canon Singing Player</title>
+    <meta charset=utf-8>
+    <title>Canon Singing Player</title>
+    <style type="text/css">
+      label {
+        font-weight: bold;
+      }
+
+      fieldset, fieldset > div {
+        margin-bottom: 1em;
+      }
+    </style>
   </head>
   <body>
     <p>Status: <span id="status">Loading…</span></p>
+
+    <fieldset>
+      <legend>Recording parameters</legend>
+      <div>
+        <label for="Tempo">Tempo</label>
+        <br/><input type="number" id="tempo" name="tempo" value="90">
+        <br/>In beats per minute.
+      </div>
+      <div>
+        <label for="transpose">Transpose</label>
+        <br/><input type="number" id="transpose" name="transpose" value="0">
+        <br/>Number of half steps (may be negative)
+        <br/>If score is in F major, -5 will transpose the song to C major (5 half steps between C and F).
+        <br/>To change the octave, add/substract 12.
+      </div>
+    </fieldset>
+
     <button id=record disabled>Record</button>
     <script src="lib/file-saver"></script>
     <script src="scoreplayer.js"></script>

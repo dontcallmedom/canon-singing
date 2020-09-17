@@ -1,6 +1,19 @@
 const recordBtn = document.getElementById('record');
 const status = document.getElementById('status');
+const transposeInput = document.getElementById('transpose');
+const tempoInput = document.getElementById('tempo');
+
 let oscillator = null;
+let frequencies = null;
+let instrument = null;
+
+/**
+ * Modulo function that always returns a positive number
+ */
+function mod(nb, n) {
+  return ((nb % n) + n) % n;
+}
+
 
 /**
  * Prepare data for score playback:
@@ -18,7 +31,7 @@ async function prepare() {
     return dotted * 4 / parseInt(duration.split('.')[0], 10);
   }
 
-  const frequencies = await fetch('frequencies.json').then(res => res.json());
+  frequencies = await fetch('frequencies.json').then(res => res.json());
 
   const wave = await fetch('organ.json').then(res => res.json());
   const c = wave.real.length;
@@ -28,7 +41,7 @@ async function prepare() {
     real[i] = wave.real[i];
     imag[i] = wave.imag[i];
   }
-  const instrument = { real, imag };
+  instrument = { real, imag };
   
   const score = await fetch('score.json')
     .then(res => res.json())
@@ -37,14 +50,47 @@ async function prepare() {
     .then(notes => notes.map(note => {
       const tokens = note.split('-');
       return {
-        note: tokens[0],
-        frequency: frequencies[tokens[0]],
+        note: tokens[0].substr(0, tokens[0].length - 1),
+        octave: parseInt(tokens[0].substr(-1), 10),
         duration: parseDuration(tokens[1])
       };
     }));
 
-  return { score, instrument };
+  return score;
 }
+
+
+function transposeScore(score, steps) {
+  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const equiv = {
+    'Db': 'C#',
+    'Eb': 'D#',
+    'Gb': 'F#',
+    'Ab': 'G#',
+    'Bb': 'A#'
+  };
+  const nbOctaves = steps < 0 ? Math.ceil(steps / 12) : Math.floor(steps / 12);
+
+  return score.map(note => {
+    const normalized = notes.includes(note.note) ? note.note : equiv[note.note];
+    const notePos = notes.findIndex(note => note === normalized);
+    const newPos = mod(notePos + steps, notes.length);
+    const newNote = notes[newPos];
+    let newOctave = note.octave + nbOctaves;
+    if ((steps < 0) && (newPos > notePos)) {
+      newOctave -= 1;
+    }
+    else if ((steps > 0) && (newPos < notePos)) {
+      newOctave += 1;
+    }
+    return {
+      note: newNote,
+      octave: newOctave,
+      duration: note.duration
+    };
+  });
+}
+
 
 
 /**
@@ -52,20 +98,23 @@ async function prepare() {
  *
  * Note: "bpm" stands for "beats per minute"
  */
-function play(score, { bpm: bpm, record: record} = {bpm: 90, record: false}) {
+function play(score, {bpm, record, transpose} = {bpm: 90, record: false, transpose: 0}) {
   const tempo = 60 / bpm;
 
   // Create the oscillator
   const audioCtx = new window.AudioContext();
-  const waveTable = audioCtx.createPeriodicWave(score.instrument.real, score.instrument.imag);
+  const waveTable = audioCtx.createPeriodicWave(instrument.real, instrument.imag);
   oscillator = audioCtx.createOscillator();
   oscillator.setPeriodicWave(waveTable);
   oscillator.connect(audioCtx.destination);
 
+  // Transpose music if needed
+  const transposed = transposeScore(score, transpose);
+
   // Schedule the oscillator
   let time = audioCtx.currentTime;
-  score.score.forEach(note => {
-    oscillator.frequency.setValueAtTime(note.frequency, time);
+  transposed.forEach(note => {
+    oscillator.frequency.setValueAtTime(frequencies[`${note.note}${note.octave}`], time);
     time += (note.duration * tempo) - 0.03;
     oscillator.frequency.setValueAtTime(0, time);
     time += 0.03;
@@ -110,7 +159,10 @@ prepare().then(score => {
     else {
       recording = true;
       recordBtn.innerText = 'Stop recording';
-      play(score, { bpm: 90, record: true });
+
+      const transpose = parseInt(transposeInput.value, 10);
+      const bpm = parseInt(tempoInput.value, 10);
+      play(score, { bpm, transpose, record: true });
     }
   });
 });
