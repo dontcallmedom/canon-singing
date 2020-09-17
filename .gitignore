@@ -1,0 +1,5 @@
+_submissions/data/*.json
+_submissions/audio/*.mp3
+_submissions/audio/*.wav
+_submissions/audio/*.ogg
+node_modules/
