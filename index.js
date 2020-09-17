@@ -35,7 +35,7 @@ app.post('/upload', function(req, res) {
       return res.status(500).send(err);
     let data = {author: req.body.singer, lang: req.body.lang};
     audioData[shortname] = data;
-    fs.writeFile(path.join(__dirname, '_submissions/data/' + shortname + '.json')).then(() => res.send('File uploaded!'));
+    fs.writeFile(path.join(__dirname, '_submissions/data/' + shortname + '.json'), JSON.stringify(data, null, 2)).then(() => res.send('File uploaded!'));
   });
 });
 
