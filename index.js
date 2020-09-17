@@ -10,6 +10,7 @@ const port = 8080;
 const app = express();
 app.use(express.static('public'));
 app.use('/audios', express.static('_submissions/audio'));
+app.use('/lib/file-saver', express.static('node_modules/file-saver/dist/FileSaver.min.js'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(fileUpload());
 
