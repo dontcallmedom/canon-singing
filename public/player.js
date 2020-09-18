@@ -1,5 +1,7 @@
 const segmentDuration = 6;
 const startBtn = document.getElementById("start");
+const pauseBtn = document.getElementById("pause");
+const stopBtn = document.getElementById("stop");
 const status = document.getElementById("status");
 const covers = document.getElementById("covers");
 const songList = document.getElementById("songlist");
@@ -8,10 +10,22 @@ const instrumentFilter = document.getElementById("instrument");
 const nameFilter = document.getElementById("name");
 
 startBtn.addEventListener("click", play);
+pauseBtn.addEventListener("click", pause);
+stopBtn.addEventListener("click", stop);
+
 let langs;
 
-const voices = [];
-const uifilter = x => true;
+let startTime = 0;
+const audioContext = new window.AudioContext();
+audioContext.suspend().then(() => startTime = audioContext.currentTime);
+
+const pendingSources = {};
+const fetchedSources = {};
+const selectedSources = {};
+const audioSources = {};
+
+let readyResolve = null;
+const ready = new Promise(resolve => readyResolve = resolve);
 
 function highlightMatching(filter) {
   [...document.querySelectorAll("label.songselector")]
@@ -52,6 +66,7 @@ function buildFilter(recordings) {
     songList.querySelector("div").appendChild(label);
     label.dataset.lang = recordings[id].lang;
     label.dataset.author = recordings[id].author;
+    checkbox.addEventListener("change", toggleSource);
   }
 
   const langsInUse = [...new Set(Object.values(recordings)
@@ -82,6 +97,184 @@ function buildFilter(recordings) {
   nameFilter.addEventListener("input", updateFilter);
 }
 
+
+/**
+ * Fetch music data for the given source, and refresh the audio scheduling
+ * once data has been fetched
+ */
+async function fetchSource(id) {
+  if (pendingSources[id]) {
+    return;
+  }
+  pendingSources[id] = true;
+
+  try {
+    const buffer = await fetch(`audios/${id}.mp3`).then(r => r.arrayBuffer());
+    fetchedSources[id] = await audioContext.decodeAudioData(buffer);
+
+    // Ready to play as soon as we have one media segment
+    if (readyResolve) {
+      readyResolve();
+      readyResolve = null;
+    }
+  }
+  catch (err) {
+    console.warn('could not fetch or decode source', id, err);
+  }
+  finally {
+    pendingSources[id] = false;
+    refreshAudioSources();
+  }
+}
+
+
+/**
+ * Event handler to toggle source between selected/unselected
+ */
+function toggleSource(event) {
+  const id = event.target.id;
+  const selected = event.target.checked;
+  if (selected) {
+    selectSource(id);
+  }
+  else {
+    unselectSource(id);
+  }
+}
+
+
+/**
+ * Add the given source to the list of selected voices, and start playing it
+ * as soon as possible. Return true if source was added to the list, false if
+ * it was already in the list.
+ */
+function selectSource(id) {
+  if (selectedSources[id]) {
+    return false;
+  }
+  selectedSources[id] = true;
+  if (fetchedSources[id]) {
+    refreshAudioSources();
+  }
+  else {
+    fetchSource(id);
+  }
+
+  const img = document.createElement("img");
+  img.id = "singer-" + id;
+  img.alt = "";
+  img.src = "covers/" + id + ".png";
+  img.width = 128;
+  covers.appendChild(img);
+
+  return true;
+}
+
+
+/**
+ * Remove the given source from the list of selected voices, and stop playing
+ * it immediately
+ */
+function unselectSource(id) {
+  if (!selectedSources[id]) {
+    return;
+  }
+  selectedSources[id] = false;
+  refreshAudioSources();
+
+  const img = document.getElementById("singer-" + id);
+  img.parentNode.removeChild(img);
+}
+
+
+/**
+ * Choose the segment at which a new voice should start
+ *
+ * TODO: take the id as parameter and group voices per language / instrument
+ */
+function chooseSegment() {
+  const distribution = [0, 0, 0, 0];
+  Object.keys(audioSources).filter(id => audioSources[id]).forEach(id => {
+    distribution[audioSources[id].segment] += 1;
+  });
+
+  // Fill in the order 0, 2, 1, 3 coz' that sounds better
+  const min = Math.min(...distribution);
+  if (distribution[0] === min) {
+    return 0;
+  }
+  else if (distribution[2] === min) {
+    return 2;
+  }
+  else if (distribution[1] === min) {
+    return 1;
+  }
+  else {
+    return 3;
+  }
+}
+
+
+/**
+ * Refresh the list of voices that are currently being scheduled for audio
+ * playback based on the list of selected voices and available data
+ */
+function refreshAudioSources({ reset } = { reset: false }) {
+  // Compute current segment (from 0 to 3)
+  const currentSegment = audioContext.suspended ?
+    0 :
+    Math.floor((audioContext.currentTime - startTime) / segmentDuration);
+
+  if (getNbSelectedAndFetchedSources() === 0) {
+    audioContext.suspend().then(() => startTime = audioContext.currentTime);
+  }
+  else {
+    // Remove sources that should no longer be there
+    Object.keys(audioSources).filter(id => audioSources[id]).forEach(id => {
+      if (reset || !selectedSources[id]) {
+        audioSources[id].node.stop();
+        audioSources[id].node.disconnect();
+        audioSources[id] = null;
+      }
+    });
+
+    // Schedule sources that should be added
+    Object.keys(selectedSources).filter(id => selectedSources[id] && fetchedSources[id]).forEach(id => {
+      if (!audioSources[id]) {
+        audioSources[id] = {
+          segment: chooseSegment(),
+          node: audioContext.createBufferSource()
+        };
+        const playSegment = currentSegment + Math.abs(audioSources[id].segment - (currentSegment % 4));
+        audioSources[id].node.buffer = fetchedSources[id];
+        audioSources[id].node.loop = true;
+        audioSources[id].node.start(startTime + playSegment * segmentDuration);
+        audioSources[id].node.connect(audioContext.destination);
+      }
+    });
+    if (audioContext.suspended) {
+      audioContext.resume();
+    }
+  }
+}
+
+
+/**
+ * Return the current number of selected sources
+ */
+function getNbSelectedSources() {
+  return Object.keys(selectedSources).filter(id => selectedSources[id]).length;
+}
+
+
+/**
+ * Return the current number of selected sources that can be played
+ */
+function getNbSelectedAndFetchedSources() {
+  return Object.keys(selectedSources).filter(id => selectedSources[id] && fetchedSources[id]);
+}
+
+
 fetch("lang.json")
   .then(r => r.json())
   .then(d => { langs = d;
@@ -89,42 +282,26 @@ fetch("lang.json")
   .then(r => r.json())
   .then(recordings => {
     buildFilter(recordings);
-    const sources = Object.keys(recordings).filter(k => uifilter(recordings[k]));
+
+    // Pick sources randomly
+    const sources = Object.keys(recordings);
     if (sources.length === 0) {
       status.textContent = "No matching recording found";
       return;
     }
-    if (sources.length < 4) {
-      for (let i = sources.length ; i < 4; i++) {
-        sources.push(sources[sources.length - i]);
+
+    // Note while loop will eventually stop even if there aren't many different
+    // sources to choose from because random pick should eventually cover all
+    // of them
+    const nbSources = Math.min(4, sources.length);
+    while (getNbSelectedSources() < nbSources) {
+      const pick = Math.floor(Math.random() * sources.length);
+      if (selectSource(sources[pick])) {
+        document.getElementById(sources[pick]).checked = true;
       }
     }
-    const readyPromises = [];
-    for (let i = 0 ; i <4; i++) {
-      let pick = Math.floor(Math.random()*sources.length);
-      const source = sources[pick];
-      if (source) {
-        document.getElementById(source).checked = true;
-        const a = new Audio();
-        readyPromises.push(new Promise(res =>
-                                       a.addEventListener("canplaythrough", () => res())
-                                      ));
-        a.src = "audios/" + source + ".mp3";
-        a.loop = true;
-        a.dataset["author"] = recordings[source].author;
-        a.dataset["lang"] = recordings[source].lang;
-        voices.push(a);
-        const img = document.createElement("img");
-        img.alt = "";
-        img.src = "covers/" + source + ".png";
-        img.width = 128;
-        covers.appendChild(img);
-      } else {
-        const clone = voices[i - sources.length].cloneNode(true);
-        voices.push(clone);
-      }
-    }
-    Promise.all(readyPromises).then(() => {
+
+    ready.then(() => {
       status.textContent = "Ready!";
       startBtn.disabled = false;
     });
@@ -132,20 +309,22 @@ fetch("lang.json")
 
 
 function play() {
-  if (startBtn.textContent === "Start") {
-    for (let i = 0 ; i < 4 ; i++) {
-      setTimeout((n => () => voices[n].play())(i), i* segmentDuration* 1000);
-      startBtn.textContent = "Pause";
-    }
-  } else if (startBtn.textContent === "Pause") {
-    for (let i = 0 ; i < 4 ; i++) {
-      voices[i].pause();
-    }
-    startBtn.textContent = "Restart";
-  } else if (startBtn.textContent === "Restart") {
-    for (let i = 0 ; i < 4 ; i++) {
-      voices[i].play();
-    }
-    startBtn.textContent = "Pause";
-  }
+  audioContext.resume();
+  pauseBtn.disabled = false;
+  stopBtn.disabled = false;
+}
+
+
+function pause() {
+  audioContext.suspend();
+  pauseBtn.disabled = true;
+}
+
+
+function stop() {
+  audioContext.suspend()
+    .then(() => startTime = audioContext.currentTime)
+    .then(() => refreshAudioSources({ reset: true }));
+  pauseBtn.disabled = true;
+  stopBtn.disabled = true;
 }
