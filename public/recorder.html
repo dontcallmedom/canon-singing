@@ -4,59 +4,84 @@
   <meta charset=utf-8>
   <title>Canon Singing Recorder</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
   <style>
     #karaoke {
-    width: 15em;
     height: 4em;
     background-color: #efe;
-    font-size:2em;
+    border-radius: 15px;
+    font-size:3em;
+    }
+    #karaoke p.next {
+      color: #777;
+    }
+    #cover img {
+      vertical-align: middle;
+    }
+    .disabled {
+      opacity: 0.5;
     }
   </style>
   </head>
   <body>
-    <p>Put a headset on, and get ready to record yourself singing <a href="https://en.wikipedia.org/wiki/Fr%C3%A8re_Jacques">Frère Jacques</a> in the language of your choice (or with the instrurement of your choice), following the pace and the tone set by the audio track.</p>
-    <div id=karaoke aria-live=polite>
-
-    </div>
-    <audio controls src="audios/reference.webm" id=ref></audio>
-    <form>
-      <label>Show lyrics/notes in <select id=lang name="lang">
-        <optgroup label="Lyrics language">
-
-        </optgroup>
-        <optgroup label="Notes">
-          <option value="ABC">ABC Notation</option>
-          <option value="doremi">Do Re Mi</option>
-        </optgroup>
-      </select></label>
-    </form>
-    <button id=record>Record yourself</button>
+    <main class=container>
+      <section>
+        <h2>Recorder</h2>
+        <p>Put a headset on, and get ready to record yourself singing <a href="https://en.wikipedia.org/wiki/Fr%C3%A8re_Jacques">Frère Jacques</a> in the language of your choice (or with the instrurement of your choice), following the pace and the tone set by the audio track.</p>
+        <div id=karaoke aria-live=polite>
+          
+        </div>
+        <div class=row>
+          <div class="six columns">
+            <audio controls src="audios/reference.webm" id=ref></audio>
+          </div>
+          <div class="six columns">
+            <label>Show lyrics/notes in <select id=lang name="lang">
+                <optgroup label="Lyrics language">
+                </optgroup>
+                <optgroup label="Notes">
+                  <option value="ABC">ABC Notation</option>
+                  <option value="doremi">Do Re Mi</option>
+                </optgroup>
+            </select></label>
+          </div>
+        </div>
+    <button class=button-primary id=record>Record yourself</button>
     <button disabled id="playrecord">Replay recorded song</button>
-
-    <form id=formupload action="upload" method=post>
-      <fieldset>
+      </section>
+      <section>
+        <h2>Uploader</h2>
+        <form id=formupload action="upload" method=post>
+      <fieldset class=disabled>
         <legend>Upload information</legend>
-        <p><label>Your name: <input disabled id=singer type=text name=singer> (feel free to use a pseudo - this will be used to associate a name to the recording)</label></p>
-        <p><label>Cover image: <span id=cover></span><!--img width=100 id=cover alt="Cover image">--><input id=coverinp name=cover type=file accept="image/*"> (an image to associate with your recording - it could be a selfie or anything you'd like that can be safely shared with others; you can leave it to the randomly generated avatar otherwise)
-        <p><label>Language/Instrument:
-            <select disabled name=lang id=lang2>
-              <optgroup label="Language">
-
-              </optgroup>
-              <optgroup label="Instrument">
-                <option>Piano</option>
-                <option>Guitar</option>
-                <option>Violin</option>
-                <option>Flute</option>
-                <option>Banjo</option>
-                <option>Ukulele</option>
-                <option>Other</option>
-              </optgroup>
-            </select>
-        </p>
-        <button type=submit disabled id=upload>Upload recorded song</button>
+        <div>
+          <label for=singer>Your name</label>
+          <input disabled id=singer type=text name=singer> (feel free to use a pseudo - this will be used to associate a name to the recording)</div>
+        <div><label for=cover>Cover image</label>
+          <span id=cover></span><!--img width=100 id=cover alt="Cover image">--><input id=coverinp name=cover type=file accept="image/*">
+          (an image to associate with your recording - it could be a selfie or anything you'd like that can be safely shared with others; you can leave it to the randomly generated avatar otherwise)
+        </div>
+        <div><label for=lang>Language/Instrument</label>
+          <select disabled name=lang id=lang2>
+            <optgroup label="Language">
+            </optgroup>
+            <optgroup label="Instrument">
+              <option>Piano</option>
+              <option>Guitar</option>
+              <option>Violin</option>
+              <option>Flute</option>
+              <option>Banjo</option>
+              <option>Ukulele</option>
+              <option>Other</option>
+            </optgroup>
+          </select>
+        </div>
+        <button class=button-primary type=submit disabled id=upload>Upload recorded song</button>
         <p id=uploadstatus></p>
-    </form>
+        </form>
+      </section>
+    </main>
     <script src="randomAvatar.js"></script>
     <script src="recorder.js"></script>
   </body>

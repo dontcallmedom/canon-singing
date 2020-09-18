@@ -2,7 +2,6 @@ const segmentDuration = 6;
 const startBtn = document.getElementById("start");
 const pauseBtn = document.getElementById("pause");
 const stopBtn = document.getElementById("stop");
-const status = document.getElementById("status");
 const covers = document.getElementById("covers");
 const songList = document.getElementById("songlist");
 const langFilter = document.getElementById("lang");
@@ -76,12 +75,15 @@ function buildFilter(recordings) {
   for (let l of [...new Set(Object.values(recordings).map(r => r.lang))]) {
     const inUse = Object.values(recordings).filter(r => r.lang === l).length;
     const label = document.createElement("label");
+    const labelBody = document.createElement("span");
+    labelBody.className = "label-body";
+    label.appendChild(labelBody);
     if (l in langs) {
-      label.textContent = langs[l].name + ` (${inUse})`;
+      labelBody.textContent = langs[l].name + ` (${inUse})`;
       langFilter.appendChild(label);
     } else {
       hasInstruments = true;
-      label.textContent = l  + ` (${inUse})`;
+      labelBody.textContent = l  + ` (${inUse})`;
       instrumentFilter.appendChild(label);
     }
     const checkbox = document.createElement("input");
@@ -286,7 +288,7 @@ fetch("lang.json")
     // Pick sources randomly
     const sources = Object.keys(recordings);
     if (sources.length === 0) {
-      status.textContent = "No matching recording found";
+      //status.textContent = "No matching recording found";
       return;
     }
 
@@ -302,7 +304,7 @@ fetch("lang.json")
     }
 
     ready.then(() => {
-      status.textContent = "Ready!";
+      startBtn.textContent = "⏵︎";
       startBtn.disabled = false;
     });
   });
@@ -313,7 +315,6 @@ function play() {
   pauseBtn.disabled = false;
   stopBtn.disabled = false;
 }
-
 
 function pause() {
   audioContext.suspend();
@@ -328,3 +329,9 @@ function stop() {
   pauseBtn.disabled = true;
   stopBtn.disabled = true;
 }
+
+    document.getElementById("picker").addEventListener("toggle", () => {
+  if (document.getElementById("picker").open) {
+    document.getElementById("songlist-expand").checked = true;
+  }
+});
