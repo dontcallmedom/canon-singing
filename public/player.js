@@ -1,6 +1,7 @@
-const segmentDuration = 5.5;
+const segmentDuration = 6;
 const startBtn = document.getElementById("start");
 const status = document.getElementById("status");
+const covers = document.getElementById("covers");
 
 startBtn.addEventListener("click", play);
 
@@ -21,18 +22,25 @@ fetch("recording.json").then(r => r.json())
     }
     const readyPromises = [];
     for (let i = 0 ; i <4; i++) {
-      if (sources[i]) {
+      let pick = Math.floor(Math.random()*sources.length);
+      const source = sources[pick];
+      if (source) {
         const a = new Audio();
         readyPromises.push(new Promise(res =>
                                        a.addEventListener("canplaythrough", () => res())
                                       ));
-        a.src = "audios/" + sources[i] + ".mp3";
+        a.src = "audios/" + source + ".mp3";
         a.loop = true;
-        a.dataset["author"] = recordings[sources[i]].author;
-        a.dataset["lang"] = recordings[sources[i]].lang;
+        a.dataset["author"] = recordings[source].author;
+        a.dataset["lang"] = recordings[source].lang;
         voices.push(a);
+        const img = document.createElement("img");
+        img.alt = "Avatar for record " + source;
+        img.src = "covers/" + source + ".png";
+        img.width = 128;
+        covers.appendChild(img);
       } else {
-        const clone = audioElements[i - sources.length].cloneNode(true);
+        const clone = voices[i - sources.length].cloneNode(true);
         voices.push(clone);
       }
     }

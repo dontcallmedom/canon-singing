@@ -2,4 +2,6 @@ _submissions/data/*.json
 _submissions/audio/*.mp3
 _submissions/audio/*.wav
 _submissions/audio/*.ogg
+_submissions/audio/*.webm
+_submissions/cover/*.png
 node_modules/
