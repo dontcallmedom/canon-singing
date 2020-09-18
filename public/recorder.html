@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="css/skeleton.css">
   <style>
     #karaoke {
-    height: 4em;
+    height: 15rem;
     background-color: #efe;
     border-radius: 15px;
     font-size:3em;
@@ -21,6 +21,11 @@
     }
     .disabled {
       opacity: 0.5;
+
+    }
+    #karaoke.countdown {
+      font-size: 10rem;
+      text-align: center;
     }
   </style>
   </head>
@@ -59,7 +64,7 @@
           <label for=singer>Your name</label>
           <input disabled id=singer type=text name=singer> (feel free to use a pseudo - this will be used to associate a name to the recording)</div>
         <div><label for=cover>Cover image</label>
-          <span id=cover></span><!--img width=100 id=cover alt="Cover image">--><input id=coverinp name=cover type=file accept="image/*">
+          <span id=cover></span><br><!--img width=100 id=cover alt="Cover image">--><input id=coverinp name=cover type=file accept="image/*"><br>
           (an image to associate with your recording - it could be a selfie or anything you'd like that can be safely shared with others; you can leave it to the randomly generated avatar otherwise)
         </div>
         <div><label for=lang>Language/Instrument</label>
