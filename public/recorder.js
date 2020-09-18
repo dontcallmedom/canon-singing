@@ -36,7 +36,8 @@ coverImg.appendChild(avatar);
 (async function() {
   langs = await fetch("lang.json").then(r => r.json());
   lyrics = await fetch("lyrics.json").then(r => r.json());
-  Object.keys(langs).forEach(lang => {
+  Object.keys(langs).sort((l1, l2) => (langs[l1].sortName || langs[l1].name).localeCompare(langs[l2].sortName || langs[l2].name))
+    .forEach(lang => {
     const opt = document.createElement("option");
     opt.value = lang;
     const nativeSpan = document.createElement("span");

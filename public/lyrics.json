@@ -47,6 +47,54 @@
     "صوته جميل, صوته جميل",
     {"lang": "en", "string": "Ding Dang Dong, Ding Dang Dong"}
   ],
+  "da": [
+    "Mester Jakob, Mester Jakob,",
+    "Sover du? Sover du?",
+    "Hører du ej klokken? Hører du ej klokken?",
+    "Bim, bam, bum, bim, bam, bum."
+  ],
+  "sv": [
+    "Broder Jakob, broder Jakob",
+    "sover du, sover du?",
+    "Hör du inte klockan, hör du inte klockan",
+    "Ding dang dong, ding dang dong."
+  ],
+  "fi": [
+    "aakko kulta Jaakko kulta",
+    "Herää jo herää jo",
+    "Kellojasi soita kellojasi soita",
+    "Piu pau pou piu pau pou."
+  ],
+  "pt": [
+    "Por que dormes, irmãozinho?",
+    "Vem brincar, vem brincar!",
+    "Ouve o sininho, longe crepitando",
+    "Din din don, din din don"
+  ],
+  "hi": [
+    "Fotsin Jako, Fotsin Jako",
+    "nisbetja, nisbetja",
+    "Tinbatire linso, tinbatire linso",
+    "Tom peng pung, tom peng pung"
+  ],
+  "cs": [
+    "Bratře Kubo, Bratře Kubo,",
+    "Ještě spíš, ještě spíš ?",
+    "Venku slunce zárí, ty jsi na polštáři,",
+    "vstávej již, vstávej již."
+  ],
+  "ga": [
+    "adaig shamna, adaig shamna,",
+    "an istig, an istig!",
+    "oslaictear na síde, oslaictear na síde,",
+    "an istig, an istig!"
+  ],
+  "el": [
+    "Αδελφέ Ιάκωβε, αδελφέ Ιάκωβε",
+    "κοιμάσαι, κοιμάσαι",
+    "σημάνετε τον όρθρο, σημάνετε τον όρθρο,",
+    "Ντιν, ντιν, ντονγκ, ντιν, ντιν, ντονγκ."
+  ],
   "ABC": [
     "C D E C C D E C",
     "E F G E F G",
