@@ -1,4 +1,5 @@
 const segmentDuration = 6;
+const MAXVOICES = 10;
 const startBtn = document.getElementById("start");
 const pauseBtn = document.getElementById("pause");
 const stopBtn = document.getElementById("stop");
@@ -7,6 +8,7 @@ const songList = document.getElementById("songlist");
 const langFilter = document.getElementById("lang");
 const instrumentFilter = document.getElementById("instrument");
 const nameFilter = document.getElementById("name");
+const selectFilterButton = document.getElementById("select");
 
 startBtn.addEventListener("click", play);
 pauseBtn.addEventListener("click", pause);
@@ -37,10 +39,20 @@ function highlightMatching(filter) {
     });
 }
 
-function updateFilter() {
+function getFilter() {
   const langFilter = [...document.querySelectorAll("#filter input[type='checkbox']")]
         .filter(n => n.checked).map(n => n.value);
-  highlightMatching({lang: langFilter, name: nameFilter.value});
+  return {lang: langFilter, name: nameFilter.value};
+}
+
+function updateFilter() {
+  const filter= getFilter();
+  highlightMatching(filter);
+  if (filter.lang.length || filter.name) {
+    selectFilterButton.disabled = false;
+  } else {
+    selectFilterButton.disabled = true;
+  }
 }
 
 function buildFilter(recordings) {
@@ -334,4 +346,21 @@ function stop() {
   if (document.getElementById("picker").open) {
     document.getElementById("songlist-expand").checked = true;
   }
+});
+
+const toggleInput = (el, set) => {
+  if (el.checked && set) return;
+  if (!set && !el.checked) return;
+  el.checked = set;
+  el.dispatchEvent(new Event("change"));
+}
+
+selectFilterButton.addEventListener("click", () => {
+  const filter= getFilter();
+  [...document.querySelectorAll("label.songselector")]
+    .forEach(n => toggleInput(n.querySelector("input.songselector"), false));
+  [...document.querySelectorAll("label.songselector")]
+    .filter(n => (filter.lang && filter.lang.length ? filter.lang.includes(n.dataset.lang)  : true) && (filter.name ? n.dataset.singer.match(filter.name) : true))
+    .slice(0, MAXVOICES)
+    .forEach(n => toggleInput(n.querySelector("input.songselector"), true));
 });

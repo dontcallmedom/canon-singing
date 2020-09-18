@@ -111,6 +111,7 @@ details[open] > summary:before {
     padding: .5em;
     background-color: #eee;
     border-radius: 15px;
+    margin-top:1em;
 }
 
 #covers img {
