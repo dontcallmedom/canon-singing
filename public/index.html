@@ -4,9 +4,26 @@
     <meta charset=utf-8>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canon Singing Player</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <p>Status: <span id="status">Loading…</span></p>
+    <div id=songlist>
+      <input id="songlist-expand" type="checkbox">
+      <div>
+        <p><label for="songlist-expand">List of recordings</label></p>
+        <label id="songlist-expander" for="songlist-expand"></label>
+      </div>
+      <details><summary>Pick recordings</summary>
+        <fieldset id=filter>
+          <legend>Filter recordings</legend>
+          <p id=lang>Languages: </p>
+          <p id=instrument>Instruments: </p>
+          <p><label>Recordings whose author's name contains: <input type="text" name=name id=name></p>
+          <p><button id=select>Update playlist with matching recordings</button></p>
+        </fieldset>
+      </details>
+    </div>
     <p id=covers></p>
     <button id=start disabled>Start</button>
     <script src="player.js"></script>
