@@ -29,10 +29,16 @@ let autoSuspended = false;
 let readyResolve = null;
 const ready = new Promise(resolve => readyResolve = resolve);
 
+const matchFilter = filter =>  {
+  const regexp = new RegExp(filter.name, "i");
+  return n => (filter.lang && filter.lang.length ? filter.lang.includes(n.dataset.lang)  : true) && (filter.name ? n.dataset.author.match(regexp) : true);
+};
+
 function highlightMatching(filter) {
+  const match = matchFilter(filter);
   [...document.querySelectorAll("label.songselector")]
     .forEach(n => {
-      if (!((filter.lang && filter.lang.length ? filter.lang.includes(n.dataset.lang)  : true) && (filter.name ? n.dataset.author.match(filter.name) : true))) {
+      if (!match(n)) {
         n.classList.add('lowlight')
       } else {
         n.classList.remove('lowlight')
@@ -370,10 +376,11 @@ const toggleInput = (el, set) => {
 
 selectFilterButton.addEventListener("click", () => {
   const filter= getFilter();
+  const match = matchFilter(filter);
   [...document.querySelectorAll("label.songselector")]
     .forEach(n => toggleInput(n.querySelector("input.songselector"), false));
   [...document.querySelectorAll("label.songselector")]
-    .filter(n => (filter.lang && filter.lang.length ? filter.lang.includes(n.dataset.lang)  : true) && (filter.name ? n.dataset.singer.match(filter.name) : true))
+    .filter(match)
     .slice(0, MAXVOICES)
     .forEach(n => toggleInput(n.querySelector("input.songselector"), true));
 });
