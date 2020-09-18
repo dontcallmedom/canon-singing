@@ -12,8 +12,8 @@ const form = document.getElementById("formupload");
 const segmentDuration = 6;
 
 const preferedLanguage = (navigator.language || "en").split("-")[0];
-console.log(preferedLanguage);
-let selectedLang = "en";
+
+let selectedLang = preferedLanguage;
 let langs = {}, lyrics = {};
 let onAir = false;
 let customImage = false;
@@ -122,9 +122,12 @@ recordBtn.addEventListener("click", async () => {
     if (i == 1) {
       tone.pause();
     }
+    karaoke.classList.add("countdown");
     karaoke.textContent = i;
     await wait(1);
   }
+  karaoke.textContent = "";
+  karaoke.classList.remove("countdown");
   ref.controls = false;
   recorder.start(100);
   ref.play();
