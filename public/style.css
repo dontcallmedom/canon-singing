@@ -5,7 +5,7 @@
 
 #songlist   #songlist-expand + div label figure {
   margin-left: -50px;
-  z-index:0;
+  z-index:1;
   border: 1px solid gray;
   padding-left: 2px;
   background-color:rgba(255,255,255,0.8);
@@ -13,7 +13,7 @@
 
 #songlist  #songlist-expand + div label:nth-child(3) figure {
   margin-left: 0;
-  z-index:-1;
+  z-index:0;
 }
 
 #songlist  #songlist-expand + div label:nth-child(4) figure {
@@ -35,8 +35,9 @@
   content:"»";
   display:block;
   float:left;
-  height:60px;
-  width:50px;
+  height:70px;
+  border: thin gray solid;
+  width:48px;
   text-align: center;
   border-radius: 2px;
   background-color:#08f;
