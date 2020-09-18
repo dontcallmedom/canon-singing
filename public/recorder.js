@@ -130,6 +130,7 @@ ref.addEventListener("ended", () => {
     // Upload resulting recording
     recording = new Blob(recordedChunks);
     [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
+    form.classList.remove("disabled");
   }
 });
 

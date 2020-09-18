@@ -1,3 +1,8 @@
+#songlist-thumbs label, h2 label {
+    display: inline;
+    font-weight: normal;
+}
+
 #songlist #songlist-expand {
   display: none
 }
@@ -11,16 +16,16 @@
   background-color:rgba(255,255,255,0.8);
 }
 
-#songlist  #songlist-expand + div label:nth-child(3) figure {
+#songlist  #songlist-expand + div label:nth-child(2) figure {
   margin-left: 0;
   z-index:0;
 }
 
-#songlist  #songlist-expand + div label:nth-child(4) figure {
+#songlist  #songlist-expand + div label:nth-child(3) figure {
   margin-left: -20px;
 }
 
-#songlist #songlist-expand + div label:nth-child(5) figure {
+#songlist #songlist-expand + div label:nth-child(4) figure {
   margin-left: -40px;
 }
 
@@ -84,4 +89,34 @@
 
 #songlist label.songselector.lowlight {
     opacity: 0.5;
+}
+
+details > summary {
+    position: relative;
+  list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+details > summary:before {
+  content: '►';
+}
+
+details[open] > summary:before {
+  content: '▼';
+}
+#picker {
+    padding: .5em;
+    background-color: #eee;
+    border-radius: 15px;
+}
+
+#covers img {
+    height: 128px;
+    width: 128px;
+    margin: .5em;
+    border: thin solid gray;
+    border-radius: 50%;
 }
