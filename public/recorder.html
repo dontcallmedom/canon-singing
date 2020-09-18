@@ -15,12 +15,12 @@
   </head>
   <body>
     <p>Put a headset on, and get ready to record yourself singing <a href="https://en.wikipedia.org/wiki/Fr%C3%A8re_Jacques">Frère Jacques</a> in the language of your choice (or with the instrurement of your choice), following the pace and the tone set by the audio track.</p>
-    <div id=karaoke>
+    <div id=karaoke aria-live=polite>
 
     </div>
     <audio controls src="audios/reference.webm" id=ref></audio>
     <form>
-      <select id=lang name="lang">
+      <label>Show lyrics/notes in <select id=lang name="lang">
         <optgroup label="Lyrics language">
 
         </optgroup>
@@ -28,7 +28,7 @@
           <option value="ABC">ABC Notation</option>
           <option value="doremi">Do Re Mi</option>
         </optgroup>
-      </select>
+      </select></label>
     </form>
     <button id=record>Record yourself</button>
     <button disabled id="playrecord">Replay recorded song</button>
@@ -37,7 +37,7 @@
       <fieldset>
         <legend>Upload information</legend>
         <p><label>Your name: <input disabled id=singer type=text name=singer> (feel free to use a pseudo - this will be used to associate a name to the recording)</label></p>
-        <p><label>Cover image: <span id=cover></span><!--img width=100 id=cover alt="Cover image">--><input id=coverinp name=cover type=file accept="image/*"> (an image to associate with your recording - it could be a selfie or anything you'd like that can be safely shared with others; you can use the randomly generated avatar otherwise)
+        <p><label>Cover image: <span id=cover></span><!--img width=100 id=cover alt="Cover image">--><input id=coverinp name=cover type=file accept="image/*"> (an image to associate with your recording - it could be a selfie or anything you'd like that can be safely shared with others; you can leave it to the randomly generated avatar otherwise)
         <p><label>Language/Instrument:
             <select disabled name=lang id=lang2>
               <optgroup label="Language">
