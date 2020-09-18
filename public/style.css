@@ -1,0 +1,44 @@
+div.songlist figure {
+  margin-left: -57px;
+  z-index:0;
+  border: 1px solid gray;
+  padding-left: 2px;
+  background-color:rgba(255,255,255,0.8);
+}
+
+div.songlist  #songlist-expand + div a:nth-child(3) figure {
+  margin-left: 0;
+  z-index:5;
+}
+
+div.songlist  #songlist-expand + div a:nth-child(4) figure {
+  margin-left: -20px;
+}
+
+div.songlist #songlist-expand + div a:nth-child(5) figure {
+  margin-left: -40px;
+}
+
+div.songlist #songlist-expand:checked + div a figure {
+  margin-left: 0;
+  transition-timing-function:cubic-bezier(0,-0.4,1,1.8);
+}
+
+
+div.songlist #songlist-expand + div #songlist-expander:before {
+  font-size:40px;
+  content:"»";
+  display:block;
+  float:left;
+  height:60px;
+  width:50px;
+  text-align: center;
+  border-radius: 2px;
+  background-color:#08f;
+  color:white;
+
+}
+
+div.songlist #songlist-expand:checked + div #songlist-expander:before {
+  content:"«";
+}
