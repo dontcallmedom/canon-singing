@@ -22,7 +22,7 @@ let recordedChunks = [];
 let recording;
 let stream;
 
-const tone = new Audio("audios/tone.mp3");
+const tone = new Audio("audios/tone.webm");
 tone.loop = true;
 
 const pickRandomlyFrom = a => a[Math.floor(a.length * Math.random())];
