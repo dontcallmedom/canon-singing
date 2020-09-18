@@ -22,6 +22,7 @@ const pendingSources = {};
 const fetchedSources = {};
 const selectedSources = {};
 const audioSources = {};
+let autoSuspended = false;
 
 let readyResolve = null;
 const ready = new Promise(resolve => readyResolve = resolve);
@@ -221,42 +222,47 @@ function chooseSegment() {
  * Refresh the list of voices that are currently being scheduled for audio
  * playback based on the list of selected voices and available data
  */
-function refreshAudioSources({ reset } = { reset: false }) {
-  // Compute current segment (from 0 to 3)
-  const currentSegment = audioContext.suspended ?
-    0 :
-    Math.floor((audioContext.currentTime - startTime) / segmentDuration);
-
+async function refreshAudioSources({ reset } = { reset: false }) {
   if (getNbSelectedAndFetchedSources() === 0) {
-    audioContext.suspend().then(() => startTime = audioContext.currentTime);
+    await audioContext.suspend();
+    autoSuspended = true;
+    startTime = audioContext.currentTime;
   }
-  else {
-    // Remove sources that should no longer be there
-    Object.keys(audioSources).filter(id => audioSources[id]).forEach(id => {
-      if (reset || !selectedSources[id]) {
-        audioSources[id].node.stop();
-        audioSources[id].node.disconnect();
-        audioSources[id] = null;
-      }
-    });
 
-    // Schedule sources that should be added
-    Object.keys(selectedSources).filter(id => selectedSources[id] && fetchedSources[id]).forEach(id => {
-      if (!audioSources[id]) {
-        audioSources[id] = {
-          segment: chooseSegment(),
-          node: audioContext.createBufferSource()
-        };
-        const playSegment = currentSegment + Math.abs(audioSources[id].segment - (currentSegment % 4));
-        audioSources[id].node.buffer = fetchedSources[id];
-        audioSources[id].node.loop = true;
-        audioSources[id].node.start(startTime + playSegment * segmentDuration);
-        audioSources[id].node.connect(audioContext.destination);
-      }
-    });
-    if (audioContext.suspended) {
-      audioContext.resume();
+  // Compute current segment (from 0 to 3)
+  const currentSegment = Math.floor((audioContext.currentTime - startTime) / segmentDuration);
+
+  // Remove sources that should no longer be there
+  Object.keys(audioSources).filter(id => audioSources[id]).forEach(id => {
+    if (reset || !selectedSources[id]) {
+      console.log(id, 'remove', audioSources[id].segment, 'current', currentSegment);
+      audioSources[id].node.stop();
+      audioSources[id].node.disconnect();
+      audioSources[id] = null;
     }
+  });
+
+  // Schedule sources that should be added
+  Object.keys(selectedSources).filter(id => selectedSources[id] && fetchedSources[id]).forEach(id => {
+    if (!audioSources[id]) {
+      audioSources[id] = {
+        segment: chooseSegment(),
+        node: audioContext.createBufferSource()
+      };
+      let playSegment = currentSegment + Math.abs(audioSources[id].segment - (currentSegment % 4));
+      if ((playSegment === currentSegment) && (startTime + playSegment * segmentDuration < audioContext.currentTime)) {
+        playSegment += 4;
+      }
+      console.log(id, 'add', audioSources[id].segment, 'current', currentSegment, 'start at', playSegment);
+      audioSources[id].node.buffer = fetchedSources[id];
+      audioSources[id].node.loop = true;
+      audioSources[id].node.start(startTime + playSegment * segmentDuration);
+      audioSources[id].node.connect(audioContext.destination);
+    }
+  });
+
+  if (autoSuspended && (getNbSelectedAndFetchedSources() > 0)) {
+    audioContext.resume();
   }
 }
 
@@ -273,7 +279,7 @@ function getNbSelectedSources() {
  * Return the current number of selected sources that can be played
  */
 function getNbSelectedAndFetchedSources() {
-  return Object.keys(selectedSources).filter(id => selectedSources[id] && fetchedSources[id]);
+  return Object.keys(selectedSources).filter(id => selectedSources[id] && fetchedSources[id]).length;
 }
 
 
@@ -311,13 +317,19 @@ fetch("lang.json")
 
 
 function play() {
-  audioContext.resume();
+  if (getNbSelectedAndFetchedSources() > 0) {
+    audioContext.resume();
+  }
+  else {
+    autoSuspended = true;
+  }
   pauseBtn.disabled = false;
   stopBtn.disabled = false;
 }
 
 function pause() {
   audioContext.suspend();
+  autoSuspended = false;
   pauseBtn.disabled = true;
 }
 
@@ -326,6 +338,7 @@ function stop() {
   audioContext.suspend()
     .then(() => startTime = audioContext.currentTime)
     .then(() => refreshAudioSources({ reset: true }));
+  autoSuspended = false;
   pauseBtn.disabled = true;
   stopBtn.disabled = true;
 }
