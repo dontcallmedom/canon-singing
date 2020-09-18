@@ -5,6 +5,9 @@ const uploadLangSelector = document.getElementById('lang2');
 const recordBtn = document.getElementById('record');
 const replayBtn = document.getElementById('playrecord');
 const uploadBtn = document.getElementById('upload');
+const singerInp = document.getElementById("singer");
+const coverInp = document.getElementById("coverinp");
+const coverImg = document.getElementById("cover");
 const form = document.getElementById("formupload");
 const segmentDuration = 6;
 
@@ -13,6 +16,7 @@ console.log(preferedLanguage);
 let selectedLang = "en";
 let langs = {}, lyrics = {};
 let onAir = false;
+let customImage = false;
 let recorder;
 let recordedChunks = [];
 let recording;
@@ -20,6 +24,14 @@ let stream;
 
 const tone = new Audio("audios/tone.mp3");
 tone.loop = true;
+
+const pickRandomlyFrom = a => a[Math.floor(a.length * Math.random())];
+const randomLetter = pickRandomlyFrom("Frère Jacques".split(''));
+var avatar = randomAvatar({size:128, text: randomLetter});
+avatar.alt = "Randomly generated image with letter " + randomLetter;
+coverImg.innerHTML = "";
+coverImg.appendChild(avatar);
+
 
 (async function() {
   langs = await fetch("lang.json").then(r => r.json());
@@ -121,13 +133,43 @@ ref.addEventListener("ended", () => {
   }
 });
 
-uploadBtn.addEventListener("click", e => {
+uploadBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   const formData = new FormData(form);
   formData.append("recording", recording);
+  // TODO if !customImage, load avatar into formData.cover
+  if (!customImage) {
+    const img = coverImg.querySelector("img");
+    if (img) {
+      const cv = document.createElement("canvas");
+      cv.width = img.clientWidth;
+      cv.height = img.clientHeight;
+      const ctx = cv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      await new Promise(res => cv.toBlob(blob => res(formData.append('cover', blob))));
+    }
+  }
   fetch("upload", {method: "POST", body: formData})
     .then(r => r.json())
     .then(res => {
       // TODO: show error or success
     });
+});
+
+singerInp.addEventListener("value", e => {
+  if (customImage) return;
+  const text = singerInp.value.split(' ').map(x => x[0].toUpperCase()) || randomLetter;
+  var avatar = randomAvatar({size:128, text});
+  avatar.alt = "Randomly generated image with letters " + text;
+  coverImg.innerHTML = "";
+  coverImg.appendChild(avatar);
+});
+
+coverInp.addEventListener("change", () => {
+  coverImg.innerHTML = "";
+  const img = document.createElement('img');
+  img.width = 200;
+  img.src = URL.createObjectURL(coverInp.files[0]);
+  coverImg.appendChild(img);
+  customImage = true;
 });

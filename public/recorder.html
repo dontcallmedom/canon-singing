@@ -36,7 +36,8 @@
     <form id=formupload action="upload" method=post>
       <fieldset>
         <legend>Upload information</legend>
-        <p><label>Your name: <input disabled id=singer type=text name=singer></label> (feel free to use a pseudo - this will be used to associate a name to the recording)</p>
+        <p><label>Your name: <input disabled id=singer type=text name=singer> (feel free to use a pseudo - this will be used to associate a name to the recording)</label></p>
+        <p><label>Cover image: <span id=cover></span><!--img width=100 id=cover alt="Cover image">--><input id=coverinp name=cover type=file accept="image/*"> (an image to associate with your recording - it could be a selfie or anything you'd like that can be safely shared with others; you can use the randomly generated avatar otherwise)
         <p><label>Language/Instrument:
             <select disabled name=lang id=lang2>
               <optgroup label="Language">
@@ -55,6 +56,7 @@
         </p>
         <button type=submit disabled id=upload>Upload recorded song</button>
     </form>
+    <script src="randomAvatar.js"></script>
     <script src="recorder.js"></script>
   </body>
 </html>

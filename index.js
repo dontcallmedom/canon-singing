@@ -18,7 +18,7 @@ const audioData = {};
 
 app.post('/upload', function(req, res) {
   console.log(req);
-  if (!req.files || Object.keys(req.files).length === 0) {
+  if (!req.files || Object.keys(req.files).length === 0 || !req.files.recording) {
     return res.status(400).send('No files were uploaded.');
   }
   if (!req.body || !req.body.singer || !req.body.lang) {
@@ -26,17 +26,26 @@ app.post('/upload', function(req, res) {
   }
 
   let audioFile = req.files.recording;
+  let coverFile = req.files.cover;
   // generate random name
   let shortname = nanoid();
   let name =  shortname + ".mp3";
 
   // Use the mv() method to place the file somewhere on your server
-  audioFile.mv(path.join(__dirname, '_submissions/audio/' + name), function(err) {
+  audioFile.mv(path.join(__dirname, '_submissions/audio/' + name), async function(err) {
     if (err)
-      return res.status(500).send(err);
+      return res.status(500).send(JSON.stringify({err}, null, 2));
     let data = {author: req.body.singer, lang: req.body.lang};
     audioData[shortname] = data;
-    fs.writeFile(path.join(__dirname, '_submissions/data/' + shortname + '.json'), JSON.stringify(data, null, 2)).then(() => res.send('File uploaded!'));
+    await fs.writeFile(path.join(__dirname, '_submissions/data/' + shortname + '.json'), JSON.stringify(data, null, 2));
+    res.send(JSON.stringify({msg: 'Song  uploaded with id ' + shortname}, null, 2));
+    if (coverFile) {
+      if (Array.isArray(coverFile)) {
+        coverFile = coverFile[coverFile.length - 1];
+      }
+      console.log(coverFile);
+      coverFile.mv(path.join(__dirname, '_submissions/cover/' + shortname + '.png'), err => console.log(err));
+    }
   });
 });
 
