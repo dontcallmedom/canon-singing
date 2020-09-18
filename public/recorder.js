@@ -6,8 +6,10 @@ const recordBtn = document.getElementById('record');
 const replayBtn = document.getElementById('playrecord');
 const uploadBtn = document.getElementById('upload');
 const form = document.getElementById("formupload");
-const segmentDuration = 5.5;
+const segmentDuration = 6;
 
+const preferedLanguage = (navigator.language || "en").split("-")[0];
+console.log(preferedLanguage);
 let selectedLang = "en";
 let langs = {}, lyrics = {};
 let onAir = false;
@@ -33,23 +35,25 @@ tone.loop = true;
     enSpan.textContent = " (" + langs[lang].name + ")";
     opt.appendChild(nativeSpan);
     opt.appendChild(enSpan);
-    if (lang === "en") {
+    if (lang === preferedLanguage) {
       opt.selected = true;
     }
     if (lyrics[lang]) {
       const opt2 = opt.cloneNode(true);
-      if (lang === "en") {
+      if (lang === preferedLanguage) {
         opt2.selected = true;
       }
-      langSelector.appendChild(opt2);
+      langSelector.querySelector("optgroup").appendChild(opt2);
     }
-    uploadLangSelector.appendChild(opt);
+    uploadLangSelector.querySelector("optgroup").appendChild(opt);
   });
 })();
 
 langSelector.addEventListener("change", () => {
   selectedLang = langSelector.value;
-  uploadLangSelector.value = selectedLang;
+  if (Object.keys(langs).includes(selectedLang)) {
+    uploadLangSelector.value = selectedLang;
+  }
 });
 
 ref.addEventListener("timeupdate", function() {

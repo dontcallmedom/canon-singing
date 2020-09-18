@@ -46,5 +46,17 @@
     "اسمعوا، اسمعوا",
     "صوته جميل, صوته جميل",
     {"lang": "en", "string": "Ding Dang Dong, Ding Dang Dong"}
+  ],
+  "ABC": [
+    "C D E C C D E C",
+    "E F G E F G",
+    "G A G F M C G A F M C",
+    "C G C C G C"
+  ],
+  "doremi": [
+    "do re mi do do re mi do",
+    "mi fa sol mi fa sol",
+    "sol la sol fa mi do sol la sol fa mi do  re mi do re mi",
+    "do sol do do sol do"
   ]
 }

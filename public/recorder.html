@@ -21,6 +21,13 @@
     <audio controls src="audios/reference.webm" id=ref></audio>
     <form>
       <select id=lang name="lang">
+        <optgroup label="Lyrics language">
+
+        </optgroup>
+        <optgroup label="Notes">
+          <option value="ABC">ABC Notation</option>
+          <option value="doremi">Do Re Mi</option>
+        </optgroup>
       </select>
     </form>
     <button id=record>Play reference and Record</button>
@@ -30,7 +37,22 @@
       <fieldset>
         <legend>Upload information</legend>
         <p><label>Your name: <input disabled id=singer type=text name=singer></label> (feel free to use a pseudo - this will be used to associate a name to the recording)</p>
-        <p><label>Language: <select disabled name=lang id=lang2></select></p>
+        <p><label>Language/Instrument:
+            <select disabled name=lang id=lang2>
+              <optgroup label="Language">
+
+              </optgroup>
+              <optgroup label="Instrument">
+                <option>Piano</option>
+                <option>Guitar</option>
+                <option>Violin</option>
+                <option>Flute</option>
+                <option>Banjo</option>
+                <option>Ukulele</option>
+                <option>Other</option>
+              </optgroup>
+            </select>
+        </p>
         <button type=submit disabled id=upload>Upload recorded song</button>
     </form>
     <script src="recorder.js"></script>
