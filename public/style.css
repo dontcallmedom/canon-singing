@@ -1,31 +1,36 @@
-div.songlist figure {
-  margin-left: -57px;
+#songlist #songlist-expand {
+  display: none
+}
+
+
+#songlist   #songlist-expand + div label figure {
+  margin-left: -50px;
   z-index:0;
   border: 1px solid gray;
   padding-left: 2px;
   background-color:rgba(255,255,255,0.8);
 }
 
-div.songlist  #songlist-expand + div a:nth-child(3) figure {
+#songlist  #songlist-expand + div label:nth-child(3) figure {
   margin-left: 0;
-  z-index:5;
+  z-index:-1;
 }
 
-div.songlist  #songlist-expand + div a:nth-child(4) figure {
+#songlist  #songlist-expand + div label:nth-child(4) figure {
   margin-left: -20px;
 }
 
-div.songlist #songlist-expand + div a:nth-child(5) figure {
+#songlist #songlist-expand + div label:nth-child(5) figure {
   margin-left: -40px;
 }
 
-div.songlist #songlist-expand:checked + div a figure {
+#songlist #songlist-expand:checked + div label figure {
   margin-left: 0;
   transition-timing-function:cubic-bezier(0,-0.4,1,1.8);
 }
 
 
-div.songlist #songlist-expand + div #songlist-expander:before {
+#songlist #songlist-expand + div #songlist-expander:before {
   font-size:40px;
   content:"»";
   display:block;
@@ -39,6 +44,43 @@ div.songlist #songlist-expand + div #songlist-expander:before {
 
 }
 
-div.songlist #songlist-expand:checked + div #songlist-expander:before {
+#songlist #songlist-expand:checked + div #songlist-expander:before {
   content:"«";
+}
+
+#songlist figure {
+    vertical-align: top;
+    position: relative;
+	padding: 0;
+	width: 50px;
+        height: 70px;
+	display: inline-block;
+	margin: 0;
+	transition-duration: 0.15s, 0.4s;
+	transition-timing-function: linear;
+	transition-property: transform, margin;
+	padding-left: 2px;
+	background-color: rgba(255,255,255,0.8);
+}
+#songlist #songlist-expand + div label .songselector:checked + figure, #songlist .songselector:checked +  figure figcaption {
+    background-color: #AFA;
+}
+#songlist figure figcaption {
+    position: absolute;
+    top: 50px;
+	font-size: 8px;
+	overflow: hidden;
+	width: 50px;
+	max-height: 20px;
+	display: block;
+	margin-left: 5px;
+	background-color: rgba(255,255,255,0.8);
+	text-align: center;
+}
+#songlist input.songselector {
+    display: none;
+}
+
+#songlist label.songselector.lowlight {
+    opacity: 0.5;
 }
