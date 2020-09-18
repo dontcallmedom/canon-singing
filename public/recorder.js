@@ -152,13 +152,19 @@ uploadBtn.addEventListener("click", async (e) => {
   fetch("upload", {method: "POST", body: formData})
     .then(r => r.json())
     .then(res => {
+      if (res.err) {
+        document.getElementById("uploadstatus").textContent = "Upload failed: " + res.err;
+      } else if (res.msg) {
+        document.getElementById("uploadstatus").textContent = "Upload Succeeded: " + res.msg;
+        uploadBtn.disabled = true;
+      }
       // TODO: show error or success
     });
 });
 
-singerInp.addEventListener("value", e => {
+singerInp.addEventListener("input", e => {
   if (customImage) return;
-  const text = singerInp.value.split(' ').map(x => x[0].toUpperCase()) || randomLetter;
+  const text = singerInp.value.split(' ').map(x => x[0].toUpperCase()).join('') || randomLetter;
   var avatar = randomAvatar({size:128, text});
   avatar.alt = "Randomly generated image with letters " + text;
   coverImg.innerHTML = "";
