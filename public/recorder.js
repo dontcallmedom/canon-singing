@@ -72,15 +72,35 @@ ref.addEventListener("timeupdate", function() {
   const segment = Math.floor(ref.currentTime / segmentDuration);
   const lang = lyrics[selectedLang] ? selectedLang : "en";
   const line = lyrics[lang][segment];
+  const nextLine = lyrics[lang][segment + 1] || false;
   if (!line) {
     karaoke.textContent = "";
     return;
   }
+  const current = document.createElement("span");
+  let next;
+  if (nextLine) {
+    next = document.createElement("p");
+    next.className = "next";
+  }
   if (line.lang) {
-    karaoke.lang = line.lang;
-    karaoke.textContent = line.string
+    current.lang = line.lang;
+    current.textContent = line.string
   } else {
-    karaoke.textContent = line;
+    current.textContent = line;
+  }
+  if (nextLine) {
+    if (line.lang) {
+      next.lang = nextLine.lang;
+      next.textContent = nextLine.string
+    } else {
+      next.textContent = nextLine;
+    }
+  }
+  karaoke.innerHTML = "";
+  karaoke.appendChild(current);
+  if (nextLine) {
+    karaoke.appendChild(next);
   }
 });
 
