@@ -15,6 +15,10 @@
         "name":"Catalan",
         "nativeName":"Català"
     },
+  "ga": {
+    "name": "gaelic",
+    "nativeName": "gaelic"
+  },
     "zh-hans":{
       "name": "Simplified Chinese",
       "nativeName": "简体中文",
@@ -25,6 +29,10 @@
       "nativeName": "繁體中文",
       "sortName": "Chinese (traditional)"
     },
+  "hi": {
+    "name": "Hindi",
+    "nativeName": "हिन्दी'"
+  },
     "hr":{
         "name":"Croatian",
         "nativeName":"hrvatski"
