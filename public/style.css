@@ -125,6 +125,29 @@ details[open] > summary:before {
     border-radius: 50%;
 }
 
+#covers.playing img {
+    transform-origin: 50% 50%;
+    animation: 6s linear infinite spin;
+}
+
+#covers.playing.paused img {
+    animation-play-state :paused;
+}
+
+#covers.playing img.segment2 {
+    animation-delay: 6s;
+}
+
+#covers.playing img.segment3 {
+    animation-delay: 12s;
+}
+
+#covers.playing img.segment4 {
+    animation-delay: 18s;
+}
+
+@keyframes spin { from { transform: rotate(0)} to {transform: rotate(360deg)} }
+
 .group-label {
     display: inline-block;
     width: 6em;

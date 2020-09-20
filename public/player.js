@@ -6,6 +6,7 @@ const covers = document.getElementById("covers");
 const songList = document.getElementById("songlist");
 const langFilter = document.getElementById("lang");
 const instrumentFilter = document.getElementById("instrument");
+const segmentClasses = ["segment1", "segment2", "segment3", "segment4"];
 
 startBtn.addEventListener("click", play);
 pauseBtn.addEventListener("click", pause);
@@ -283,6 +284,10 @@ async function refreshAudioSources({ reset } = { reset: false }) {
         segment: chooseSegment(),
         node: audioContext.createBufferSource()
       };
+      for (let c of segmentClasses) {
+        document.getElementById("singer-" +id).classList.remove(c);
+      }
+      document.getElementById("singer-" + id).classList.add(segmentClasses[audioSources[id].segment]);
       let playSegment = currentSegment + Math.abs(audioSources[id].segment - (currentSegment % 4));
       if ((playSegment === currentSegment) && (startTime + playSegment * segmentDuration < audioContext.currentTime)) {
         playSegment += 4;
@@ -359,12 +364,15 @@ function play() {
   }
   pauseBtn.disabled = false;
   stopBtn.disabled = false;
+  document.getElementById("covers").classList.add("playing");
+  document.getElementById("covers").classList.remove("paused");
 }
 
 function pause() {
   audioContext.suspend();
   autoSuspended = false;
   pauseBtn.disabled = true;
+  document.getElementById("covers").classList.add("paused");
 }
 
 
@@ -375,6 +383,7 @@ function stop() {
   autoSuspended = false;
   pauseBtn.disabled = true;
   stopBtn.disabled = true;
+  document.getElementById("covers").classList.remove("playing");
 }
 
 
