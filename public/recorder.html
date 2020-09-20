@@ -8,10 +8,11 @@
   <link rel="stylesheet" href="css/skeleton.css">
   <style>
     #karaoke {
-    height: 15rem;
+    height: 18rem;
     background-color: #efe;
     border-radius: 15px;
     font-size:3em;
+    overflow:hidden;
     }
     #karaoke p.next {
       color: #777;
@@ -38,10 +39,10 @@
           
         </div>
         <div class=row>
-          <div class="six columns">
+          <div class="five columns">
             <audio controls src="audios/reference.webm" id=ref></audio>
           </div>
-          <div class="six columns">
+          <div class="seven columns">
             <label>Show lyrics/notes in <select id=lang name="lang">
                 <optgroup label="Lyrics language">
                 </optgroup>
@@ -55,10 +56,10 @@
     <button class=button-primary id=record>Record yourself</button>
     <button disabled id="playrecord">Replay recorded song</button>
       </section>
-      <section>
+      <section id=uploader class=disabled>
         <h2>Uploader</h2>
         <form id=formupload action="upload" method=post>
-      <fieldset class=disabled>
+      <fieldset>
         <legend>Upload information</legend>
         <div>
           <label for=singer>Your name</label>
