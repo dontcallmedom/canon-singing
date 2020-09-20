@@ -10,30 +10,28 @@
   </head>
   <body>
     <main class=container>
-    <section id=songlist>
-      <h2><label for="songlist-expand">Playlist</label></h2>
-      <input id="songlist-expand" type="checkbox">
-      <div id="songlist-thumbs">
-        <label id="songlist-expander" for="songlist-expand"></label>
-      </div>
-      <details id=picker><summary>Refine playlist…</summary>
-        <p>Pick which recordings form the playlist used to composed the canon:</p>
-        <fieldset id=filter>
-          <legend>Filter recordings</legend>
-          <p id=lang>Languages: </p>
-          <p id=instrument>Instruments: </p>
-          <div><label for=name>Recordings whose author's name contains</label>
-            <input type="text" name=name id=name></div>
-          <p><button disabled id=select>Update playlist with matching recordings</button></p>
-        </fieldset>
-      </details>
-    </section>
     <section>
       <h2 style="display: none">Player</h2>
       <p id=covers></p>
-      <button class=button-primary  id=start title="Play" disabled>Loading…</button>
-      <button id=pause title="Pause" disabled>⏸︎</button>
-      <button id=stop title="Stop" disabled>⏹︎</button>
+      <p class="row">
+      <button class="button-primary four columns"  id=start title="Play" disabled>Loading…</button>
+      <button id=pause class="four columns" title="Pause" disabled>⏸︎</button>
+      <button id=stop class="four columns" title="Stop" disabled>⏹︎</button>
+      </p>
+    </section>
+      <section id=songlist>
+        <details id=picker><summary>Refine playlist…</summary>
+          <fieldset id=filter>
+            <legend>Pick which recordings to play for the canon:</legend>
+            <p><button disabled id=random>Pick 4 randomly</button>
+            <p id=lang>By language: </p>
+            <p id=instrument>By Instrument: </p>
+            <!-- Filter by name 
+          <div><label for=name>Recordings whose author's name contains</label>
+            <input type="text" name=name id=name></div> -->
+            <!--<p><button disabled id=select>Update playlist with matching recordings</button></p> -->
+        </fieldset>
+      </details>
     </section>
     </main>
     <script src="player.js"></script>

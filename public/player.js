@@ -1,5 +1,4 @@
 const segmentDuration = 6;
-const MAXVOICES = 10;
 const startBtn = document.getElementById("start");
 const pauseBtn = document.getElementById("pause");
 const stopBtn = document.getElementById("stop");
@@ -7,8 +6,6 @@ const covers = document.getElementById("covers");
 const songList = document.getElementById("songlist");
 const langFilter = document.getElementById("lang");
 const instrumentFilter = document.getElementById("instrument");
-const nameFilter = document.getElementById("name");
-const selectFilterButton = document.getElementById("select");
 
 startBtn.addEventListener("click", play);
 pauseBtn.addEventListener("click", pause);
@@ -29,40 +26,64 @@ let autoSuspended = false;
 let readyResolve = null;
 const ready = new Promise(resolve => readyResolve = resolve);
 
-const matchFilter = filter =>  {
-  const regexp = new RegExp(filter.name, "i");
-  return n => (filter.lang && filter.lang.length ? filter.lang.includes(n.dataset.lang)  : true) && (filter.name ? n.dataset.author.match(regexp) : true);
+const toggleInput = (el, set) => {
+  if (el.checked && set) return;
+  if (!set && !el.checked) return;
+  el.checked = set;
+  el.dispatchEvent(new Event("change"));
 };
 
-function highlightMatching(filter) {
-  const match = matchFilter(filter);
-  [...document.querySelectorAll("label.songselector")]
-    .forEach(n => {
-      if (!match(n)) {
-        n.classList.add('lowlight')
-      } else {
-        n.classList.remove('lowlight')
-      }
-    });
-}
-
-function getFilter() {
-  const langFilter = [...document.querySelectorAll("#filter input[type='checkbox']")]
-        .filter(n => n.checked).map(n => n.value);
-  return {lang: langFilter, name: nameFilter.value};
-}
-
-function updateFilter() {
-  const filter= getFilter();
-  highlightMatching(filter);
-  if (filter.lang.length || filter.name) {
-    selectFilterButton.disabled = false;
-  } else {
-    selectFilterButton.disabled = true;
+const shuffle = array => {
+  for(let i = array.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * i)
+    const temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
   }
-}
+  return array;
+};
 
-function buildFilter(recordings) {
+
+function buildSongList(recordings, group) {
+  const EXPANDER_THRESHOLD = 10;
+  const expandGroup = document.createElement("div");
+  const expandToggle = document.createElement("input");
+  expandToggle.type = "checkbox";
+  expandToggle.id = "songlist-expand-" + group.id;
+  expandToggle.className = "songlist-expand";
+  expandToggle.checked = Object.keys(recordings).length < EXPANDER_THRESHOLD;
+  const div = document.createElement("fieldset");
+  div.className = "songlist-thumbs";
+  const p = document.createElement("legend");
+  const groupName = document.createElement("span");
+  groupName.className = "group-label";
+  const btnGroup = document.createElement("span");
+  const allBtn = document.createElement("button");
+  allBtn.textContent = "Add all to playlist";
+  allBtn.setAttribute("aria-label", "Add all recordings in " + group.name + " to playlist")
+  allBtn.addEventListener("click", () => {
+    [...expandGroup.querySelectorAll("input.songselector")]
+      .forEach(n => toggleInput(n, true))
+  });
+  const noneBtn = document.createElement("button");
+  noneBtn.textContent = "Remove all from playlist";
+  noneBtn.addEventListener("click", () => {
+    [...expandGroup.querySelectorAll("input.songselector")]
+      .forEach(n => toggleInput(n, false))
+  });
+  allBtn.setAttribute("aria-label", "Remove all recordings in " + group.name + " from playlist")
+  groupName.textContent = group.name;
+  p.appendChild(groupName);
+  btnGroup.appendChild(allBtn);
+  btnGroup.appendChild(noneBtn);
+  p.appendChild(btnGroup);
+  div.appendChild(p);
+  if (Object.keys(recordings).length > EXPANDER_THRESHOLD) {
+    const expander = document.createElement("label");
+    expander.setAttribute("for", "songlist-expand-" + group.id);
+    expander.className = "songlist-expander";
+    div.appendChild(expander);
+  }
   for (let id of Object.keys(recordings)) {
     const label = document.createElement("label");
     const fig = document.createElement("figure");
@@ -81,41 +102,36 @@ function buildFilter(recordings) {
     fig.appendChild(caption);
     label.appendChild(fig);
     label.className = "songselector";
-    songList.querySelector("div").appendChild(label);
     label.dataset.lang = recordings[id].lang;
     label.dataset.author = recordings[id].author;
+
     checkbox.addEventListener("change", toggleSource);
+    div.appendChild(label);
   }
+
+  expandGroup.appendChild(expandToggle);
+  expandGroup.appendChild(div);
+  return expandGroup;
+}
+
+function buildFilter(recordings) {
 
   const langsInUse = [...new Set(Object.values(recordings)
                              .map(r => r.lang)
                                  .filter(l => Object.keys(langs).includes(l)))];
   let hasInstruments = false;
   for (let l of [...new Set(Object.values(recordings).map(r => r.lang))]) {
-    const inUse = Object.values(recordings).filter(r => r.lang === l).length;
-    const label = document.createElement("label");
-    const labelBody = document.createElement("span");
-    labelBody.className = "label-body";
-    label.appendChild(labelBody);
+    const recordingGroup = Object.keys(recordings).filter(k => recordings[k].lang === l).reduce((a, b) => { a[b] = recordings[b]; return a;}, {});
     if (l in langs) {
-      labelBody.textContent = langs[l].name + ` (${inUse})`;
-      langFilter.appendChild(label);
+      langFilter.appendChild(buildSongList(recordingGroup, {id:l, name: langs[l].name}));
     } else {
       hasInstruments = true;
-      labelBody.textContent = l  + ` (${inUse})`;
-      instrumentFilter.appendChild(label);
+      instrumentFilter.appendChild(buildSongList(recordingGroup, {id:l, name: l}));
     }
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = l;
-    checkbox.addEventListener("change", updateFilter);
-    label.prepend(checkbox);
-
   }
   if (!hasInstruments) {
     instrumentFilter.style = "display: none";
   }
-  nameFilter.addEventListener("input", updateFilter);
 }
 
 
@@ -308,7 +324,7 @@ fetch("lang.json")
   .then(r => r.json())
   .then(recordings => {
     buildFilter(recordings);
-
+    buildRandomPicker(recordings);
     // Pick sources randomly
     const sources = Object.keys(recordings);
     if (sources.length === 0) {
@@ -361,26 +377,21 @@ function stop() {
   stopBtn.disabled = true;
 }
 
-    document.getElementById("picker").addEventListener("toggle", () => {
-  if (document.getElementById("picker").open) {
-    document.getElementById("songlist-expand").checked = true;
+
+function buildRandomPicker(recordings) {
+  const picker = document.getElementById("random");
+  if (Object.keys(recordings).length < 4) {
+    picker.remove();
+    return
   }
-});
-
-const toggleInput = (el, set) => {
-  if (el.checked && set) return;
-  if (!set && !el.checked) return;
-  el.checked = set;
-  el.dispatchEvent(new Event("change"));
+  picker.disabled = false;
+  picker.addEventListener("click", () => {
+    const pick = shuffle(Object.keys(recordings)).slice(0, 4);
+    console.log(pick);
+    [...document.querySelectorAll("input.songselector")]
+      .forEach(n => toggleInput(n, false));
+    [...document.querySelectorAll("input.songselector")]
+      .filter(n => pick.includes(n.id))
+      .forEach(n => toggleInput(n, true));
+  });
 }
-
-selectFilterButton.addEventListener("click", () => {
-  const filter= getFilter();
-  const match = matchFilter(filter);
-  [...document.querySelectorAll("label.songselector")]
-    .forEach(n => toggleInput(n.querySelector("input.songselector"), false));
-  [...document.querySelectorAll("label.songselector")]
-    .filter(match)
-    .slice(0, MAXVOICES)
-    .forEach(n => toggleInput(n.querySelector("input.songselector"), true));
-});
