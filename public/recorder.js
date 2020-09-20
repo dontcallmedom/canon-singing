@@ -182,8 +182,17 @@ uploadBtn.addEventListener("click", async (e) => {
       } else if (res.msg) {
         document.getElementById("uploadstatus").textContent = "Upload Succeeded: " + res.msg;
         uploadBtn.disabled = true;
+        const json = localStorage.getItem("canon-singing-ids") || "[]";
+        try {
+          const ids = JSON.parse(json);
+          if (Array.isArray(ids) && res.id) {
+            ids.push(res.id);
+            localStorage.setItem("canon-singing-ids", JSON.stringify(ids));
+          }
+        } catch (e) {
+          console.error("Could not save new record with id " + id + ":" + e);
+        }
       }
-      // TODO: show error or success
     });
 });
 

@@ -39,7 +39,7 @@ app.post('/upload', function(req, res) {
     let data = {author: req.body.singer, lang: req.body.lang};
     audioData[shortname] = data;
     await fs.writeFile(path.join(__dirname, '_submissions/data/' + shortname + '.json'), JSON.stringify(data, null, 2));
-    res.send(JSON.stringify({msg: 'Song  uploaded with id ' + shortname}, null, 2));
+    res.send(JSON.stringify({msg: 'Song  uploaded with id ' + shortname, id: shortname}, null, 2));
     if (coverFile) {
       if (Array.isArray(coverFile)) {
         coverFile = coverFile[coverFile.length - 1];
