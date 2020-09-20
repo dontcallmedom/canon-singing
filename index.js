@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 const {nanoid} = require('nanoid');
 const path = require('path');
 
-const port = 8080;
+const port = process.env.PORT || 8080;
 
 const app = express();
 app.use(express.static('public'));
