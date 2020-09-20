@@ -1,14 +1,14 @@
-#songlist-thumbs label, h2 label {
+#songlist-thumbs label, p label {
     display: inline;
     font-weight: normal;
 }
 
-#songlist #songlist-expand {
+#songlist .songlist-expand {
   display: none
 }
 
 
-#songlist   #songlist-expand + div label figure {
+#songlist   .songlist-expand + fieldset label figure {
   margin-left: -50px;
   z-index:1;
   border: 1px solid gray;
@@ -16,26 +16,26 @@
   background-color:rgba(255,255,255,0.8);
 }
 
-#songlist  #songlist-expand + div label:nth-child(2) figure {
+#songlist  .songlist-expand + fieldset label:nth-child(2) figure {
   margin-left: 0;
   z-index:0;
 }
 
-#songlist  #songlist-expand + div label:nth-child(3) figure {
+#songlist  .songlist-expand + fieldset label:nth-child(3) figure {
   margin-left: -20px;
 }
 
-#songlist #songlist-expand + div label:nth-child(4) figure {
+#songlist .songlist-expand + fieldset label:nth-child(4) figure {
   margin-left: -40px;
 }
 
-#songlist #songlist-expand:checked + div label figure {
+#songlist .songlist-expand:checked + fieldset label figure {
   margin-left: 0;
   transition-timing-function:cubic-bezier(0,-0.4,1,1.8);
 }
 
 
-#songlist #songlist-expand + div #songlist-expander:before {
+#songlist .songlist-expand + fieldset .songlist-expander:before {
   font-size:40px;
   content:"»";
   display:block;
@@ -50,14 +50,14 @@
 
 }
 
-#songlist #songlist-expand:checked + div #songlist-expander:before {
+#songlist .songlist-expand:checked + fieldset .songlist-expander:before {
   content:"«";
 }
 
 #songlist figure {
     vertical-align: top;
     position: relative;
-	padding: 0;
+    padding: 0;
 	width: 50px;
         height: 70px;
 	display: inline-block;
@@ -67,16 +67,16 @@
 	transition-property: transform, margin;
 	padding-left: 2px;
 	background-color: rgba(255,255,255,0.8);
+        border-radius: 2px;
 }
-#songlist #songlist-expand + div label .songselector:checked + figure, #songlist .songselector:checked +  figure figcaption {
-    background-color: #AFA;
+#songlist .songlist-expand + fieldset label .songselector:checked + figure {
+    border: 3px #1EAEDB solid;
 }
 #songlist figure figcaption {
     position: absolute;
     top: 50px;
 	font-size: 8px;
 	overflow: hidden;
-	width: 50px;
 	max-height: 20px;
 	display: block;
 	margin-left: 5px;
@@ -101,7 +101,8 @@ details > summary::-webkit-details-marker {
 }
 
 details > summary:before {
-  content: '►';
+    content: '⚙️';
+    vertical-align: middle;
 }
 
 details[open] > summary:before {
@@ -114,10 +115,17 @@ details[open] > summary:before {
     margin-top:1em;
 }
 
+#covers { text-align: center;}
+
 #covers img {
     height: 128px;
     width: 128px;
     margin: .5em;
     border: thin solid gray;
     border-radius: 50%;
+}
+
+.group-label {
+    display: inline-block;
+    width: 6em;
 }
