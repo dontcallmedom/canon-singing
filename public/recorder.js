@@ -18,7 +18,7 @@ let langs = {}, lyrics = {};
 let onAir = false;
 let customImage = false;
 let recorder;
-let recordedChunks = [];
+let recordedChunks;
 let recording;
 let stream;
 
@@ -117,6 +117,7 @@ recordBtn.addEventListener("click", async () => {
   ref.currentTime = 0;
   stream = await navigator.mediaDevices.getUserMedia({audio: true});
   recorder = new MediaRecorder(stream, {mimeType: "audio/webm"});
+  recordedChunks = [];
   recorder.ondataavailable = event => recordedChunks.push(event.data);
   tone.play();
   for (i = 3; i > 0; i--) {
