@@ -289,8 +289,6 @@ async function refreshAudioSources({ reset } = { reset: false }) {
   // Remove sources that should no longer be there
   Object.keys(audioSources).filter(id => audioSources[id]).forEach(id => {
     if (reset || !selectedSources[id]) {
-      console.log(id, 'remove', audioSources[id].segment, 'current', currentSegment);
-      audioSources[id].node.stop();
       audioSources[id].nodes.forEach(node => node.disconnect());
       audioSources[id].gainNode.disconnect();
       audioSources[id].pannerNode.disconnect();
