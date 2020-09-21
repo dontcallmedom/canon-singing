@@ -303,9 +303,13 @@ async function refreshAudioSources({ reset } = { reset: false }) {
         gainNode: audioContext.createGain()
       };
       for (let c of segmentClasses) {
-        document.getElementById("singer-" +id).classList.remove(c);
+        if (document.getElementById("singer-" +id)) {
+          document.getElementById("singer-" +id).classList.remove(c);
+        }
       }
-      document.getElementById("singer-" + id).classList.add(segmentClasses[audioSources[id].segment]);
+      if (document.getElementById("singer-" +id)) {
+        document.getElementById("singer-" + id).classList.add(segmentClasses[audioSources[id].segment]);
+      }
       let playSegment = currentSegment + Math.abs(audioSources[id].segment - (currentSegment % 4));
       if ((playSegment === currentSegment) && (startTime + playSegment * segmentDuration < audioContext.currentTime)) {
         playSegment += 4;
