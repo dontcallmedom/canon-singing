@@ -7,6 +7,7 @@ const songList = document.getElementById("songlist");
 const langFilter = document.getElementById("lang");
 const instrumentFilter = document.getElementById("instrument");
 const segmentClasses = ["segment1", "segment2", "segment3", "segment4"];
+const segmentPositions = [[-1, 1], [1, 1], [1, -1], [-1, -1]];
 
 startBtn.addEventListener("click", play);
 pauseBtn.addEventListener("click", pause);
@@ -291,6 +292,7 @@ async function refreshAudioSources({ reset } = { reset: false }) {
       audioSources[id].node.stop();
       audioSources[id].node.disconnect();
       audioSources[id].gainNode.disconnect();
+      audioSources[id].pannerNode.disconnect();
       audioSources[id] = null;
     }
   });
@@ -301,8 +303,19 @@ async function refreshAudioSources({ reset } = { reset: false }) {
       audioSources[id] = {
         segment: chooseSegment(),
         node: audioContext.createBufferSource(),
-        gainNode: audioContext.createGain()
+        gainNode: audioContext.createGain(),
+        pannerNode: audioContext.createPanner()
       };
+      const panner = audioSources[id].pannerNode;
+      panner.panningModel = 'HRTF';
+      panner.distanceModel = 'inverse';
+      panner.refDistance = 1;
+      panner.maxDistance = 10000;
+      panner.rolloffFactor = 1;
+      panner.coneInnerAngle = 360;
+      panner.coneOuterAngle = 0;
+      panner.coneOuterGain = 0;
+      panner.setPosition(segmentPositions[audioSources[id].segment][0], segmentPositions[audioSources[id].segment][1], 0);
       for (let c of segmentClasses) {
         if (document.getElementById("singer-" +id)) {
           document.getElementById("singer-" +id).classList.remove(c);
@@ -319,7 +332,8 @@ async function refreshAudioSources({ reset } = { reset: false }) {
       audioSources[id].node.buffer = fetchedSources[id];
       audioSources[id].node.loop = true;
       audioSources[id].node.start(startTime + playSegment * segmentDuration);
-      audioSources[id].node.connect(audioSources[id].gainNode);
+      audioSources[id].node.connect(audioSources[id].pannerNode);
+      audioSources[id].pannerNode.connect(audioSources[id].gainNode);
       audioSources[id].gainNode.connect(audioContext.destination);
     }
   });
