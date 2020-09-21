@@ -132,6 +132,7 @@ recordBtn.addEventListener("click", async () => {
   karaoke.classList.remove("countdown");
   ref.controls = false;
   recorder.start(100);
+  ref.currentTime = 0;
   ref.play();
   onAir = true;
 });
