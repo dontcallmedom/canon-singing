@@ -198,12 +198,29 @@ function selectSource(id) {
     fetchSource(id);
   }
 
+  const muteToggleLabel = document.createElement("label");
+  muteToggleLabel.id = "cover-" + id;
+  muteToggleLabel.setAttribute("aria-label", "Mute/Unmute recording by " + document.getElementById(id).dataset.author);
+  const muteToggleIcon = document.createElement("span");
+  muteToggleIcon.textContent = "🔊";
+  const muteToggle = document.createElement("input");
+  // 🔇 🔊
+  muteToggle.id = "mute-" + id;
+  muteToggle.type = "checkbox";
+  muteToggle.className = "mute-toggle";
+  muteToggle.addEventListener("change", () => {
+    event.target.parentNode.querySelector("span").textContent = event.target.checked ? "🔇" : "🔊";
+    refreshAudioSources();
+  });
   const img = document.createElement("img");
   img.id = "singer-" + id;
   img.alt = "";
   img.src = "covers/" + id + ".png";
   img.width = 128;
-  covers.appendChild(img);
+  muteToggleLabel.appendChild(muteToggleIcon);
+  muteToggleLabel.appendChild(muteToggle);
+  muteToggleLabel.appendChild(img);
+  covers.appendChild(muteToggleLabel);
 
   return true;
 }
@@ -220,8 +237,8 @@ function unselectSource(id) {
   selectedSources[id] = false;
   refreshAudioSources();
 
-  const img = document.getElementById("singer-" + id);
-  img.parentNode.removeChild(img);
+  const cover = document.getElementById("cover-" + id);
+  cover.remove();
 }
 
 
@@ -273,6 +290,7 @@ async function refreshAudioSources({ reset } = { reset: false }) {
       console.log(id, 'remove', audioSources[id].segment, 'current', currentSegment);
       audioSources[id].node.stop();
       audioSources[id].node.disconnect();
+      audioSources[id].gainNode.disconnect();
       audioSources[id] = null;
     }
   });
@@ -282,12 +300,17 @@ async function refreshAudioSources({ reset } = { reset: false }) {
     if (!audioSources[id]) {
       audioSources[id] = {
         segment: chooseSegment(),
-        node: audioContext.createBufferSource()
+        node: audioContext.createBufferSource(),
+        gainNode: audioContext.createGain()
       };
       for (let c of segmentClasses) {
-        document.getElementById("singer-" +id).classList.remove(c);
+        if (document.getElementById("singer-" +id)) {
+          document.getElementById("singer-" +id).classList.remove(c);
+        }
       }
-      document.getElementById("singer-" + id).classList.add(segmentClasses[audioSources[id].segment]);
+      if (document.getElementById("singer-" +id)) {
+        document.getElementById("singer-" + id).classList.add(segmentClasses[audioSources[id].segment]);
+      }
       let playSegment = currentSegment + Math.abs(audioSources[id].segment - (currentSegment % 4));
       if ((playSegment === currentSegment) && (startTime + playSegment * segmentDuration < audioContext.currentTime)) {
         playSegment += 4;
@@ -296,7 +319,17 @@ async function refreshAudioSources({ reset } = { reset: false }) {
       audioSources[id].node.buffer = fetchedSources[id];
       audioSources[id].node.loop = true;
       audioSources[id].node.start(startTime + playSegment * segmentDuration);
-      audioSources[id].node.connect(audioContext.destination);
+      audioSources[id].node.connect(audioSources[id].gainNode);
+      audioSources[id].gainNode.connect(audioContext.destination);
+    }
+  });
+
+  // Muting / unmuting
+  Object.keys(selectedSources).filter(id => audioSources[id]).forEach(id => {
+    if (document.getElementById("mute-" + id) && document.getElementById("mute-" + id).checked) {
+      audioSources[id].gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    } else {
+      audioSources[id].gainNode.gain.setValueAtTime(1 , audioContext.currentTime);
     }
   });
 
