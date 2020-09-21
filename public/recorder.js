@@ -5,7 +5,7 @@ const uploadLangSelector = document.getElementById('lang2');
 const recordBtn = document.getElementById('record');
 const replayBtn = document.getElementById('playrecord');
 const uploadBtn = document.getElementById('upload');
-const singerInp = document.getElementById("singer");
+const coverTextInp = document.getElementById("covertxt");
 const coverInp = document.getElementById("coverinp");
 const coverImg = document.getElementById("cover");
 const form = document.getElementById("formupload");
@@ -26,11 +26,12 @@ const tone = new Audio("audios/tone.webm");
 tone.loop = true;
 
 const pickRandomlyFrom = a => a[Math.floor(a.length * Math.random())];
-const randomLetter = pickRandomlyFrom("Frère Jacques".split(''));
-var avatar = randomAvatar({size:128, text: randomLetter});
-avatar.alt = "Randomly generated image with letter " + randomLetter;
+const randomEmoji = pickRandomlyFrom(["🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🥝", "🍅", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶", "🥒", "🥬", "🥦", "🧄", "🧅", "🍄", "🥜", "🌰", "🍞", "🥐", "🥖", "🥨", "🥯", "🥞", "🧇", "🧀", "🍖", "🍗", "🥩", "🥓", "🍔", "🍟", "🍕", "🌭", "🥪", "🌮", "🌯", "🥙", "🧆", "🥚", "🍳", "🥘", "🍲", "🥣", "🥗", "🍿", "🧈", "🧂", "🥫", "🍱", "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍠", "🍢", "🍣", "🍤", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🦪", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍼", "🥛", "☕", "🍵", "🍶", "🍾", "🍷", "🍸", "🍹", "🍺", "🍻", "🥂", "🥃", "🥤", "🧃", "🧉", "🧊", "🥢", "🍽", "🍴", "🥄"]);
+var avatar = randomAvatar({size:128, text: randomEmoji});
+avatar.alt = "Randomly generated image with emoji " + randomEmoji;
 coverImg.innerHTML = "";
 coverImg.appendChild(avatar);
+coverTextInp.value = randomEmoji;
 
 
 (async function() {
@@ -197,11 +198,10 @@ uploadBtn.addEventListener("click", async (e) => {
     });
 });
 
-singerInp.addEventListener("input", e => {
+coverTextInp.addEventListener("input", e => {
   if (customImage) return;
-  const text = singerInp.value.split(' ').map(x => x[0].toUpperCase()).join('') || randomLetter;
-  var avatar = randomAvatar({size:128, text});
-  avatar.alt = "Randomly generated image with letters " + text;
+  var avatar = randomAvatar({size:128, text: coverTextInp.value});
+  avatar.alt = "Randomly generated image with character " + coverTextInp.value;
   coverImg.innerHTML = "";
   coverImg.appendChild(avatar);
 });
@@ -213,4 +213,5 @@ coverInp.addEventListener("change", () => {
   img.src = URL.createObjectURL(coverInp.files[0]);
   coverImg.appendChild(img);
   customImage = true;
+  coverTextInp.remove();
 });
