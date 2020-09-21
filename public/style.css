@@ -127,7 +127,7 @@ details[open] > summary:before {
 
 #covers.playing img {
     transform-origin: 50% 50%;
-    animation: 6s linear infinite spin;
+    animation: 24s linear infinite spin;
 }
 
 #covers.playing.paused img {
