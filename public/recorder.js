@@ -49,17 +49,17 @@ coverTextInp.value = randomEmoji;
     enSpan.textContent = " (" + langs[lang].name + ")";
     opt.appendChild(nativeSpan);
     opt.appendChild(enSpan);
-    if (lang === preferedLanguage) {
-      opt.selected = true;
-    }
     if (lyrics[lang]) {
       const opt2 = opt.cloneNode(true);
+      langSelector.querySelector("optgroup").appendChild(opt2);
       if (lang === preferedLanguage) {
         opt2.selected = true;
       }
-      langSelector.querySelector("optgroup").appendChild(opt2);
     }
     uploadLangSelector.querySelector("optgroup").appendChild(opt);
+    if (lang === preferedLanguage) {
+      opt.selected = true;
+    }
   });
 })();
 
