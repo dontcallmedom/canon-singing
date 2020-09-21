@@ -120,6 +120,12 @@ recordBtn.addEventListener("click", async () => {
   recorder = new MediaRecorder(stream, {mimeType: "audio/webm"});
   recordedChunks = [];
   recorder.ondataavailable = event => recordedChunks.push(event.data);
+  recorder.onstop = () => {
+    // Allow user to listen to and upload resulting recording
+    recording = new Blob(recordedChunks);
+    [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
+    document.getElementById("uploader").classList.remove("disabled");
+  }
   tone.play();
   for (i = 3; i > 0; i--) {
     if (i == 1) {
@@ -154,10 +160,7 @@ ref.addEventListener("ended", () => {
     recordBtn.disabled = false;
     recordBtn.textContent = "Re-record";
     replayBtn.disabled = false;
-    // Upload resulting recording
-    recording = new Blob(recordedChunks);
-    [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
-    document.getElementById("uploader").classList.remove("disabled");
+    onAir = false;
   }
 });
 
