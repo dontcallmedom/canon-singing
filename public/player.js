@@ -1,4 +1,5 @@
 const segmentDuration = 6;
+const songDuration = 4 * segmentDuration;
 const startBtn = document.getElementById("start");
 const pauseBtn = document.getElementById("pause");
 const stopBtn = document.getElementById("stop");
@@ -290,7 +291,7 @@ async function refreshAudioSources({ reset } = { reset: false }) {
     if (reset || !selectedSources[id]) {
       console.log(id, 'remove', audioSources[id].segment, 'current', currentSegment);
       audioSources[id].node.stop();
-      audioSources[id].node.disconnect();
+      audioSources[id].nodes.forEach(node => node.disconnect());
       audioSources[id].gainNode.disconnect();
       audioSources[id].pannerNode.disconnect();
       audioSources[id] = null;
@@ -302,7 +303,7 @@ async function refreshAudioSources({ reset } = { reset: false }) {
     if (!audioSources[id]) {
       audioSources[id] = {
         segment: chooseSegment(),
-        node: audioContext.createBufferSource(),
+        nodes: [],
         gainNode: audioContext.createGain(),
         pannerNode: audioContext.createPanner()
       };
@@ -324,15 +325,34 @@ async function refreshAudioSources({ reset } = { reset: false }) {
       if (document.getElementById("singer-" +id)) {
         document.getElementById("singer-" + id).classList.add(segmentClasses[audioSources[id].segment]);
       }
+
       let playSegment = currentSegment + Math.abs(audioSources[id].segment - (currentSegment % 4));
-      if ((playSegment === currentSegment) && (startTime + playSegment * segmentDuration < audioContext.currentTime)) {
-        playSegment += 4;
+      let playTime = startTime + playSegment * segmentDuration;
+      if (playTime < audioContext.currentTime) {
+        playTime += songDuration;
       }
-      console.log(id, 'add', audioSources[id].segment, 'current', currentSegment, 'start at', playSegment);
-      audioSources[id].node.buffer = fetchedSources[id];
-      audioSources[id].node.loop = true;
-      audioSources[id].node.start(startTime + playSegment * segmentDuration);
-      audioSources[id].node.connect(audioSources[id].pannerNode);
+
+      // To account for possible divergences in recording durations, the code
+      // cannot simply rely on the "loop" mechanism of the Web Audio API.
+      // Instead, it needs to re-create buffer source nodes on a recurring
+      // basis. We use 2 alternating instances, because the "ended" event will
+      // likely fire too late to restart a new node immediately
+      function schedulePlayback(playTime) {
+        const node = audioContext.createBufferSource();
+        audioSources[id].nodes.push(node);
+        node.buffer = fetchedSources[id];
+        node.start(playTime, 0, songDuration);
+        node.stop(playTime + songDuration);
+        node.connect(audioSources[id].pannerNode);
+        node.addEventListener("ended", () => {
+          node.disconnect();
+          audioSources[id].nodes = audioSources[id].nodes.filter(n => n !== node);
+          schedulePlayback(playTime + 2 * songDuration);
+        });
+      }
+      schedulePlayback(playTime);
+      schedulePlayback(playTime + songDuration);
+      
       audioSources[id].pannerNode.connect(audioSources[id].gainNode);
       audioSources[id].gainNode.connect(audioContext.destination);
     }
