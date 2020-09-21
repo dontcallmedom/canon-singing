@@ -290,6 +290,7 @@ async function refreshAudioSources({ reset } = { reset: false }) {
       console.log(id, 'remove', audioSources[id].segment, 'current', currentSegment);
       audioSources[id].node.stop();
       audioSources[id].node.disconnect();
+      audioSources[id].gainNode.disconnect();
       audioSources[id] = null;
     }
   });
