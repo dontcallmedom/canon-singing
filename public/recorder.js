@@ -121,7 +121,7 @@ recordBtn.addEventListener("click", async () => {
   recordedChunks = [];
   recorder.ondataavailable = event => recordedChunks.push(event.data);
   recorder.onstop = () => {
-    // Allow user to listent to and upload resulting recording
+    // Allow user to listen to and upload resulting recording
     recording = new Blob(recordedChunks);
     [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
     document.getElementById("uploader").classList.remove("disabled");
