@@ -53,7 +53,7 @@ app.post('/upload', function(req, res) {
       coverFile.mv(path.join(__dirname, '_submissions/cover/' + shortname + '.png'), err => console.error(err));
       // Transcoding audio file
       try {
-        ffmpeg(audioPath).save(transcodedAutioPath);
+        ffmpeg(audioPath).save(transcodedAudioPath);
       } catch (e) {
         console.error(e);
       }
