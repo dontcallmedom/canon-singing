@@ -161,8 +161,8 @@ recordBtn.addEventListener("click", async () => {
     document.getElementById("format").value = mimeType;
     recorder = new MediaRecorder(stream, {mimeType});
     recordedChunks = [];
-    recorder.ondataavailable = event => recordedChunks.push(event.data);
-    recorder.onstop = () => {
+    recorder.addEventListener('dataavailable', event => recordedChunks.push(event.data));
+    recorder.addEventListener('stop', () => {
       if (!recordingCanceled) {
         // Allow user to listen to and upload resulting recording
         recording = new Blob(recordedChunks);
@@ -173,7 +173,7 @@ recordBtn.addEventListener("click", async () => {
       }
       ref.controls = true;
       recordBtn.textContent = "Re-record";
-    };
+    });
 
     // Do a 3.. 2.. 1.. dance
     recordBtn.textContent = "3.. 2.. 1..";
@@ -194,7 +194,7 @@ recordBtn.addEventListener("click", async () => {
     recordBtn.disabled = false;
 
     // Start recording and playback of reference file
-    recorder.start(100);
+    recorder.start();
     ref.controls = false;
     ref.play();
   }
