@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs').promises;
 const {nanoid} = require('nanoid');
 const path = require('path');
+const ffmpeg = require('fluent-ffmpeg');
 
 const port = process.env.PORT || 8080;
 
@@ -28,12 +29,16 @@ app.post('/upload', function(req, res) {
 
   let audioFile = req.files.recording;
   let coverFile = req.files.cover;
+  let format = req.body.format || "audio/webm";
+  let extension = format === "audio/webm" ? ".webm" : ".mp3";
+  let transcodedExtension = extension === ".webm" ? ".mp3" : ".webm";
   // generate random name
   let shortname = nanoid();
-  let name =  shortname + ".mp3";
 
+  let audioPath = path.join(__dirname, '_submissions/audio/' + shortname + extension);
+  let transcodedAudioPath = path.join(__dirname, '_submissions/audio/' + shortname + transcodedExtension);
   // Use the mv() method to place the file somewhere on your server
-  audioFile.mv(path.join(__dirname, '_submissions/audio/' + name), async function(err) {
+  audioFile.mv(audioPath, async function(err) {
     if (err)
       return res.status(500).send(JSON.stringify({err}, null, 2));
     let data = {author: req.body.singer, lang: req.body.lang};
@@ -45,7 +50,13 @@ app.post('/upload', function(req, res) {
         coverFile = coverFile[coverFile.length - 1];
       }
       console.log(coverFile);
-      coverFile.mv(path.join(__dirname, '_submissions/cover/' + shortname + '.png'), err => console.log(err));
+      coverFile.mv(path.join(__dirname, '_submissions/cover/' + shortname + '.png'), err => console.error(err));
+      // Transcoding audio file
+      try {
+        ffmpeg(audioPath).save(transcodedAudioPath);
+      } catch (e) {
+        console.error(e);
+      }
     }
   });
 });
