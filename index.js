@@ -36,7 +36,7 @@ app.post('/upload', function(req, res) {
   let shortname = nanoid();
 
   let audioPath = path.join(__dirname, '_submissions/audio/' + shortname + extension);
-  let transcodedAutioPath = path.join(__dirname, '_submissions/audio/' + shortname + transcodedExtension);
+  let transcodedAudioPath = path.join(__dirname, '_submissions/audio/' + shortname + transcodedExtension);
   // Use the mv() method to place the file somewhere on your server
   audioFile.mv(audioPath, async function(err) {
     if (err)
