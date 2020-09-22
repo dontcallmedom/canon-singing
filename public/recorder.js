@@ -117,7 +117,12 @@ recordBtn.addEventListener("click", async () => {
   ref.pause();
   ref.currentTime = 0;
   stream = await navigator.mediaDevices.getUserMedia({audio: true});
-  recorder = new MediaRecorder(stream, {mimeType: "audio/webm"});
+  let mimeType = "audio/webm";
+  if (!MediaRecorder.isTypeSupported("audio/webm")) {
+    mimeType = "audio/mpeg";
+  }
+  document.getElementById("format").value = mimeType;
+  recorder = new MediaRecorder(stream, {mimeType});
   recordedChunks = [];
   recorder.ondataavailable = event => recordedChunks.push(event.data);
   recorder.onstop = () => {
