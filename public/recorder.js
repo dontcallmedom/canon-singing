@@ -20,10 +20,11 @@ let customImage = false;
 let recorder;
 let recordedChunks;
 let recording;
+let recordingCanceled = false;
 let stream;
+let recordedAudio;
 
 const tone = new Audio("audios/tone.webm");
-tone.loop = true;
 
 const pickRandomlyFrom = a => a[Math.floor(a.length * Math.random())];
 const randomEmoji = pickRandomlyFrom(["🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🥝", "🍅", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶", "🥒", "🥬", "🥦", "🧄", "🧅", "🍄", "🥜", "🌰", "🍞", "🥐", "🥖", "🥨", "🥯", "🥞", "🧇", "🧀", "🍖", "🍗", "🥩", "🥓", "🍔", "🍟", "🍕", "🌭", "🥪", "🌮", "🌯", "🥙", "🧆", "🥚", "🍳", "🥘", "🍲", "🥣", "🥗", "🍿", "🧈", "🧂", "🥫", "🍱", "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍠", "🍢", "🍣", "🍤", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🦪", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍼", "🥛", "☕", "🍵", "🍶", "🍾", "🍷", "🍸", "🍹", "🍺", "🍻", "🥂", "🥃", "🥤", "🧃", "🧉", "🧊", "🥢", "🍽", "🍴", "🥄"]);
@@ -110,62 +111,108 @@ async function wait(s) {
   return new Promise(res => setTimeout(res, 1000*s));
 }
 
-recordBtn.addEventListener("click", async () => {
-  recordBtn.disabled = true;
-  replayBtn.disabled = true;
-  [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = true);
+function resetReplayBtn() {
+  replayBtn.textContent = "Play your last recording";
+  if (recordedAudio) {
+    recordedAudio.pause();
+    recordedAudio = null;
+  }
+}
+
+function stopRecording({ cancel } = { cancel: false }) {
+  recordingCanceled = cancel;
   ref.pause();
-  ref.currentTime = 0;
-  stream = await navigator.mediaDevices.getUserMedia({audio: true});
-  let mimeType = "audio/webm";
-  if (!MediaRecorder.isTypeSupported("audio/webm")) {
-    mimeType = "audio/mpeg";
+  stream.getAudioTracks()[0].stop();
+  recorder.stop();
+}
+
+recordBtn.addEventListener("click", async () => {
+  if (onAir) {
+    onAir = false;
+    stopRecording({ cancel: true });
   }
-  document.getElementById("format").value = mimeType;
-  recorder = new MediaRecorder(stream, {mimeType});
-  recordedChunks = [];
-  recorder.ondataavailable = event => recordedChunks.push(event.data);
-  recorder.onstop = () => {
-    // Allow user to listen to and upload resulting recording
-    recording = new Blob(recordedChunks);
-    [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
-    document.getElementById("uploader").classList.remove("disabled");
-  }
-  tone.play();
-  for (i = 3; i > 0; i--) {
-    if (i == 1) {
-      tone.pause();
+  else {
+    onAir = true;
+    replayBtn.hidden = true;
+    if (recordedAudio) {
+      recordedAudio.pause();
+      recordedAudio = null;
     }
-    karaoke.classList.add("countdown");
-    karaoke.textContent = i;
-    await wait(1);
+    [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = true);
+
+    // Stop ref playback in case it's running and set the source again to force
+    // currentTime to 0 again (file is not seekable so setting currentTime does
+    // not work).
+    ref.pause();
+    ref.src = "audios/reference.webm";
+
+    // Prepare recorder
+    stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    let mimeType = "audio/webm";
+    if (!MediaRecorder.isTypeSupported("audio/webm")) {
+      mimeType = "audio/mpeg";
+    }
+    document.getElementById("format").value = mimeType;
+    recorder = new MediaRecorder(stream, {mimeType});
+    recordedChunks = [];
+    recorder.ondataavailable = event => recordedChunks.push(event.data);
+    recorder.onstop = () => {
+      if (!recordingCanceled) {
+        // Allow user to listen to and upload resulting recording
+        recording = new Blob(recordedChunks);
+        [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
+        document.getElementById("uploader").classList.remove("disabled");
+        replayBtn.disabled = false;
+        replayBtn.hidden = false;
+      }
+      ref.controls = true;
+      recordBtn.textContent = "Re-record";
+    };
+
+    // Do a 3.. 2.. 1.. dance
+    recordBtn.textContent = "3.. 2.. 1..";
+    recordBtn.disabled = true;
+    tone.src = "audios/tone.webm";
+    tone.play();
+    for (i = 3; i > 0; i--) {
+      if (i == 1) {
+        tone.pause();
+      }
+      karaoke.classList.add("countdown");
+      karaoke.textContent = i;
+      await wait(1);
+    }
+    karaoke.textContent = "";
+    karaoke.classList.remove("countdown");
+    recordBtn.textContent = "Cancel recording";
+    recordBtn.disabled = false;
+
+    // Start recording and playback of reference file
+    recorder.start(100);
+    ref.controls = false;
+    ref.play();
   }
-  karaoke.textContent = "";
-  karaoke.classList.remove("countdown");
-  ref.controls = false;
-  recorder.start(100);
-  ref.currentTime = 0;
-  ref.play();
-  onAir = true;
 });
 
 replayBtn.addEventListener("click", () => {
-  const audio = new Audio();
-  recordBtn.disabled = true;
-  audio.src = URL.createObjectURL(recording);
-  audio.play();
-  audio.addEventListener("ended", () =>   recordBtn.disabled = false);
+  if (recordedAudio) {
+    resetReplayBtn();
+  }
+  else {
+    replayBtn.textContent = "Stop playback";
+    recordedAudio = new Audio();
+    recordedAudio.src = URL.createObjectURL(recording);
+    recordedAudio.play();
+    recordedAudio.addEventListener("ended", resetReplayBtn);
+  }
 });
+
+ref.addEventListener("playing", resetReplayBtn);
 
 ref.addEventListener("ended", () => {
   if (onAir) {
-    stream.getAudioTracks()[0].stop();
-    recorder.stop();
-    ref.controls = true;
-    recordBtn.disabled = false;
-    recordBtn.textContent = "Re-record";
-    replayBtn.disabled = false;
     onAir = false;
+    stopRecording();
   }
 });
 
