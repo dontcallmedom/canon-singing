@@ -16,6 +16,13 @@ stopBtn.addEventListener("click", stop);
 
 let langs;
 
+const audioFormatDetector = new Audio();
+let audioFormatExtension = ".webm";
+if (audioFormatDetector.canPlayType('audio/webm') === '') {
+  audioFormatExtension = ".mp3";
+}
+
+
 let startTime = 0;
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
@@ -150,7 +157,7 @@ async function fetchSource(id) {
   pendingSources[id] = true;
 
   try {
-    const buffer = await fetch(`audios/${id}.mp3`).then(r => r.arrayBuffer());
+    const buffer = await fetch(`audios/${id}${audioFormatExtension}`).then(r => r.arrayBuffer());
     fetchedSources[id] = await new Promise((res, rej) => audioContext.decodeAudioData(buffer, res, rej));
 
     // Ready to play as soon as we have one media segment
