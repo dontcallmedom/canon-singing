@@ -198,11 +198,11 @@ replayBtn.addEventListener("click", () => {
     recordedAudio = new Audio();
     recordedAudio.src = URL.createObjectURL(recording);
     recordedAudio.play();
-    recordedAudio.addEventListener("ended", () => resetReplayBtn());
+    recordedAudio.addEventListener("ended", resetReplayBtn);
   }
 });
 
-ref.addEventListener("playing", () => resetReplayBtn());
+ref.addEventListener("playing", resetReplayBtn);
 
 ref.addEventListener("ended", () => {
   if (onAir) {
