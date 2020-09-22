@@ -17,7 +17,8 @@ stopBtn.addEventListener("click", stop);
 let langs;
 
 let startTime = 0;
-const audioContext = new window.AudioContext();
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
 audioContext.suspend().then(() => startTime = audioContext.currentTime);
 
 const pendingSources = {};
