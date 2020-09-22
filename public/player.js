@@ -151,7 +151,7 @@ async function fetchSource(id) {
 
   try {
     const buffer = await fetch(`audios/${id}.mp3`).then(r => r.arrayBuffer());
-    fetchedSources[id] = await audioContext.decodeAudioData(buffer);
+    fetchedSources[id] = await new Promise((res, rej) => audioContext.decodeAudioData(buffer, res, rej));
 
     // Ready to play as soon as we have one media segment
     if (readyResolve) {
