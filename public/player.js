@@ -422,7 +422,7 @@ fetch("lang.json")
     }
 
     ready.then(() => {
-      startBtn.textContent = "⏵︎";
+      startBtn.textContent = "▶";
       startBtn.disabled = false;
     });
   });
