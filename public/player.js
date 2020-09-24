@@ -285,7 +285,8 @@ function chooseSegment() {
  * playback based on the list of selected voices and available data
  */
 async function refreshAudioSources({ reset } = { reset: false }) {
-  if (getNbSelectedAndFetchedSources() === 0) {
+  if ((getNbSelectedAndFetchedSources() === 0) &&
+      (audioContext.state !== "suspended")) {
     await audioContext.suspend();
     autoSuspended = true;
     startTime = audioContext.currentTime;
@@ -348,9 +349,11 @@ async function refreshAudioSources({ reset } = { reset: false }) {
         audioSources[id].nodes.push(node);
         node.buffer = fetchedSources[id];
         node.start(playTime, 0, songDuration);
-        node.stop(playTime + songDuration);
         node.connect(audioSources[id].pannerNode);
         node.addEventListener("ended", () => {
+          if (!audioSources[id] || !audioSources[id].nodes.find(n => n === node)) {
+            return;
+          }
           node.disconnect();
           audioSources[id].nodes = audioSources[id].nodes.filter(n => n !== node);
           schedulePlayback(playTime + 2 * songDuration);
