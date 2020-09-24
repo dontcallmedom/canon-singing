@@ -169,3 +169,43 @@ details[open] > summary:before {
 input[type="checkbox"].mute-toggle {
     display: none;
 }
+
+button {
+  height: auto;
+  padding: 10px;
+  line-height: inherit;
+  white-space: unset;
+}
+
+button[disabled] {
+  color: #999;
+}
+
+button[disabled]:hover {
+  color: #999;
+  border-color: #bbb;
+}
+
+button.button-primary[disabled] {
+  background-color: rgba(51, 195, 240, 0.3);
+  border-color: rgba(51, 195, 240, 0.1);
+  color: #fff;
+}
+
+button.button-alert {
+  background-color: #FF4F2E;
+  border-color: #FF4F2E;
+  color: #fff;
+}
+
+button.button-alert:hover {
+  background-color: #FF2800;
+  border-color: #FF2800;
+  color: #fff;
+}
+
+button.button-alert[disabled] {
+  color: #fff;
+  background-color: rgba(255, 79, 46, 0.3);
+  border-color: rgba(255, 79, 46, 0.1);
+}

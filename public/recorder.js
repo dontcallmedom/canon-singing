@@ -3,6 +3,11 @@ const ref = document.getElementById('ref');
 const langSelector = document.getElementById('lang');
 const uploadLangSelector = document.getElementById('lang2');
 const recordBtn = document.getElementById('record');
+const playBtn = document.getElementById('play');
+const playLabel = document.getElementById('play-label');
+const pauseBtn = document.getElementById('pause');
+const stopBtn = document.getElementById('stop');
+const stopLabel = document.getElementById('stop-label');
 const replayBtn = document.getElementById('playrecord');
 const uploadBtn = document.getElementById('upload');
 const coverTextInp = document.getElementById("covertxt");
@@ -15,22 +20,32 @@ const preferedLanguage = (navigator.language || "en").split("-")[0];
 
 let selectedLang = preferedLanguage;
 let langs = {}, lyrics = {};
+let toneDecodedAudio = null;
+let refBlob = null;
+let refDecodedAudio = null;
 let onAir = false;
 let customImage = false;
 let recorder;
 let recordedChunks;
 let recording;
+let recordingDecodedAudio = null;
 let recordingCanceled = false;
-let stream;
-let recordedAudio;
+let stream = null;
+let playbackNode = null;
+let refNode = null;
+let karaokeTimeout = null;
 
+// Initialize audio context
+let startTime = 0;
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+
+// Audio format for playback
+const audioFormatDetector = new Audio();
 let audioFormat = "webm";
-if (ref.canPlayType('audio/webm') === '') {
-  ref.src = ref.src.replace(/.webm$/, '.mp3');
+if (audioFormatDetector.canPlayType('audio/webm') === '') {
   audioFormat = "mp3";
 }
-
-const tone = new Audio("audios/tone." + audioFormat);
 
 const pickRandomlyFrom = a => a[Math.floor(a.length * Math.random())];
 const randomEmoji = pickRandomlyFrom(["🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🥝", "🍅", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶", "🥒", "🥬", "🥦", "🧄", "🧅", "🍄", "🥜", "🌰", "🍞", "🥐", "🥖", "🥨", "🥯", "🥞", "🧇", "🧀", "🍖", "🍗", "🥩", "🥓", "🍔", "🍟", "🍕", "🌭", "🥪", "🌮", "🌯", "🥙", "🧆", "🥚", "🍳", "🥘", "🍲", "🥣", "🥗", "🍿", "🧈", "🧂", "🥫", "🍱", "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍠", "🍢", "🍣", "🍤", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🦪", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍼", "🥛", "☕", "🍵", "🍶", "🍾", "🍷", "🍸", "🍹", "🍺", "🍻", "🥂", "🥃", "🥤", "🧃", "🧉", "🧊", "🥢", "🍽", "🍴", "🥄"]);
@@ -41,9 +56,186 @@ coverImg.appendChild(avatar);
 coverTextInp.value = randomEmoji;
 
 
+function resetAudioGraph() {
+  if (playbackNode) {
+    playbackNode.disconnect();
+    playbackNode.removeEventListener("ended", onEndedHandler);
+    playbackNode = null;
+  }
+  if (refNode) {
+    refNode.disconnect();
+    refNode.removeEventListener("ended", onEndedHandler);
+    refNode = null;
+  }
+}
+
+function onEndedHandler() {
+  audioContext.suspend();
+  resetAudioGraph();
+  stopKaraoke();
+
+  if (recorder) {
+    recorder.stop();
+    stopLabel.textContent = "Stop";
+  }
+
+  recordBtn.disabled = false;
+  playBtn.disabled = false;
+  pauseBtn.disabled = true;
+  stopBtn.disabled = true;
+}
+
+
+async function prepareReferencePlayback() {
+  startTime = audioContext.currentTime;
+  playbackNode = audioContext.createBufferSource();
+  playbackNode.buffer = refDecodedAudio;
+  playbackNode.start(startTime);
+  playbackNode.connect(audioContext.destination);
+  playbackNode.addEventListener("ended", onEndedHandler);
+}
+
+async function prepareCountdownAndReferencePlayback() {
+  startTime = audioContext.currentTime;
+  playbackNode = audioContext.createGain();
+
+  const toneNode1 = audioContext.createBufferSource();
+  toneNode1.buffer = toneDecodedAudio;
+  toneNode1.start(startTime);
+  toneNode1.stop(startTime + 1);
+  toneNode1.connect(playbackNode);
+
+  const toneNode2 = audioContext.createBufferSource();
+  toneNode2.buffer = toneDecodedAudio;
+  toneNode2.start(startTime + 1);
+  toneNode2.stop(startTime + 2);
+  toneNode2.connect(playbackNode);
+
+  const toneNode3 = audioContext.createBufferSource();
+  toneNode3.buffer = toneDecodedAudio;
+  toneNode3.start(startTime + 2);
+  toneNode3.stop(startTime + 3);
+  toneNode3.connect(playbackNode);
+
+  refNode = audioContext.createBufferSource();
+  refNode.buffer = refDecodedAudio;
+  refNode.start(startTime + 3);
+
+  refNode.connect(playbackNode);
+  playbackNode.connect(audioContext.destination);
+
+  refNode.addEventListener("ended", onEndedHandler);
+}
+
+async function prepareRecordingPlayback() {
+  // Safari compat notes:
+  // - No support for blob.arrayBuffer() yet, so need to use FileReader
+  // - No support for Promise version of decodeAudioData yet
+  const buffer = await new Promise(resolve => {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(recording);
+    reader.onloadend = () => {
+      resolve(reader.result);
+    }
+  });
+  const decodedAudio = await new Promise((res, rej) => audioContext.decodeAudioData(buffer, res, rej));
+  startTime = audioContext.currentTime;
+  playbackNode = audioContext.createBufferSource();
+  playbackNode.buffer = decodedAudio;
+  playbackNode.start(startTime);
+  playbackNode.connect(audioContext.destination);
+  playbackNode.addEventListener("ended", onEndedHandler);
+}
+
+function startKaraoke({ wait } = { wait: 0 }) {
+  let lastSegment = -1;
+  let lastLang = null;
+
+  function scheduleNextCheck() {
+    karaokeTimeout = setTimeout(karaokeCheck, 100);
+  }
+
+  function karaokeCheck() {
+    const currentTime = audioContext.currentTime - startTime - wait;
+    const segment = Math.floor(currentTime / segmentDuration);
+    const lang = lyrics[selectedLang] ? selectedLang : "en";
+
+    if ((segment < 0) || ((segment === lastSegment) && (lang === lastLang))) {
+      scheduleNextCheck();
+      return;
+    }
+    lastSegment = segment;
+    lastLang = lang;
+
+    const line = lyrics[lang][segment];
+    const nextLine = lyrics[lang][segment + 1] || false;
+    if (!line) {
+      karaoke.textContent = "";
+      scheduleNextCheck();
+      return;
+    }
+    const current = document.createElement("span");
+    let next;
+    if (nextLine) {
+      next = document.createElement("p");
+      next.className = "next";
+    }
+    if (line.lang) {
+      current.lang = line.lang;
+      current.textContent = line.string
+    } else {
+      current.textContent = line;
+    }
+    if (nextLine) {
+      if (line.lang) {
+        next.lang = nextLine.lang;
+        next.textContent = nextLine.string
+      } else {
+        next.textContent = nextLine;
+      }
+    }
+    karaoke.innerHTML = "";
+    karaoke.appendChild(current);
+    if (nextLine) {
+      karaoke.appendChild(next);
+    }
+
+    scheduleNextCheck();
+  }
+
+  stopKaraoke();
+  scheduleNextCheck();
+}
+
+function stopKaraoke() {
+  if (karaokeTimeout) {
+    clearTimeout(karaokeTimeout);
+    karaokeTimeout = null;
+  }
+}
+
+
 (async function() {
+  // Safari compat notes:
+  // - No support for Promise version of decodeAudioData yet
+  // - Call to suspend does not seem to set the internal "suspended by user"
+  // flag, see workaround in recordBtn click event handler.
+  await audioContext.suspend();
+  startTime = audioContext.currentTime;
+  toneDecodedAudio = await fetch(`audios/tone.${audioFormat}`)
+    .then(r => r.arrayBuffer())
+    .then(buffer => new Promise((res, rej) => audioContext.decodeAudioData(buffer, res, rej)));
+  refDecodedAudio = await fetch(`audios/reference.${audioFormat}`)
+    .then(r => r.arrayBuffer())
+    .then(buffer => {
+      refBlob = new Blob([buffer]);
+      return buffer;
+    })
+    .then(buffer => new Promise((res, rej) => audioContext.decodeAudioData(buffer, res, rej)));
+
   langs = await fetch("lang.json").then(r => r.json());
   lyrics = await fetch("lyrics.json").then(r => r.json());
+
   Object.keys(langs).sort((l1, l2) => (langs[l1].sortName || langs[l1].name).localeCompare(langs[l2].sortName || langs[l2].name))
     .forEach(lang => {
     const opt = document.createElement("option");
@@ -68,6 +260,11 @@ coverTextInp.value = randomEmoji;
       opt.selected = true;
     }
   });
+
+  recordBtn.disabled = false;
+  playBtn.disabled = false;
+  pauseBtn.disabled = false;
+  stopBtn.disabled = false;
 })();
 
 langSelector.addEventListener("change", () => {
@@ -77,150 +274,124 @@ langSelector.addEventListener("change", () => {
   }
 });
 
-ref.addEventListener("timeupdate", function() {
-  const segment = Math.floor(ref.currentTime / segmentDuration);
-  const lang = lyrics[selectedLang] ? selectedLang : "en";
-  const line = lyrics[lang][segment];
-  const nextLine = lyrics[lang][segment + 1] || false;
-  if (!line) {
-    karaoke.textContent = "";
-    return;
+recordBtn.addEventListener("click", async () => {
+  recordBtn.disabled = true;
+  playBtn.disabled = true;
+  pauseBtn.disabled = true;
+  stopLabel.textContent = "Cancel recording";
+
+  if (playbackNode) {
+    await audioContext.suspend();
+    resetAudioGraph();
   }
-  const current = document.createElement("span");
-  let next;
-  if (nextLine) {
-    next = document.createElement("p");
-    next.className = "next";
+
+  // Disable upload form
+  [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = true);
+  document.getElementById("uploader").classList.add("disabled");
+
+  // Safari compat notes:
+  // - The following two lines look pretty useless. They are not when recording
+  // for the first time! Safari apparently refuses to set the internal
+  // [[suspended by user]] flag  unless "resume" has been called first... and
+  // "resume" can only be called in response to user activation (so not when
+  // the page loads). Without these lines, the audio context woult start playing
+  // on Safari as soon as a node gets created in the audio graph, not when
+  // "resume" is called.
+  await audioContext.resume();
+  await audioContext.suspend();
+  await prepareCountdownAndReferencePlayback();
+
+  // Prepare recorder
+  stream = await navigator.mediaDevices.getUserMedia({audio: true});
+  let mimeType = "audio/webm";
+  if (!MediaRecorder.isTypeSupported("audio/webm")) {
+    mimeType = "audio/mpeg";
   }
-  if (line.lang) {
-    current.lang = line.lang;
-    current.textContent = line.string
-  } else {
-    current.textContent = line;
+  document.getElementById("format").value = mimeType;
+  recordingCanceled = false;
+  recorder = new MediaRecorder(stream, { mimeType });
+  recordedChunks = [];
+  recorder.addEventListener("dataavailable", event => recordedChunks.push(event.data));
+  recorder.addEventListener("stop", () => {
+    recording = new Blob(recordedChunks);
+
+    if (!recordingCanceled) {
+      // Allow user to listen to and upload resulting recording
+      [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
+      document.getElementById("uploader").classList.remove("disabled");
+    }
+    recorder = null;
+
+    recordBtn.disabled = false;
+    playBtn.disabled = false;
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    playLabel.textContent = "Play recording";
+    stopLabel.textContent = "Stop";
+  });
+
+  // Start playback
+  await audioContext.resume();
+  startKaraoke({ wait: 3 });
+
+  // Show countdown
+  karaoke.classList.add("countdown");
+  for (let i = 3; i > 0; i--) {
+    karaoke.textContent = i;
+    await wait(1);
   }
-  if (nextLine) {
-    if (line.lang) {
-      next.lang = nextLine.lang;
-      next.textContent = nextLine.string
-    } else {
-      next.textContent = nextLine;
+  karaoke.textContent = "";
+  karaoke.classList.remove("countdown");
+
+  // Start recording
+  // (note there is no guarantee that precisely 3 seconds will have
+  // passed, but we should hopefully be close enough)
+  recorder.start();
+
+  stopBtn.disabled = false;
+});
+
+playBtn.addEventListener("click", async () => {
+  playBtn.disabled = true;
+  if (!playbackNode) {
+    if (recording) {
+      await prepareRecordingPlayback();
+    }
+    else {
+      await prepareReferencePlayback();
     }
   }
-  karaoke.innerHTML = "";
-  karaoke.appendChild(current);
-  if (nextLine) {
-    karaoke.appendChild(next);
-  }
+  await audioContext.resume();
+  startKaraoke();
+  pauseBtn.disabled = false;
+  stopBtn.disabled = false;
 });
+
+pauseBtn.addEventListener("click", async () => {
+  pauseBtn.disabled = true;
+  await audioContext.suspend();
+  stopKaraoke();
+  playBtn.disabled = false;
+});
+
+stopBtn.addEventListener("click", async () => {
+  pauseBtn.disabled = true;
+  stopBtn.disabled = true;
+  await audioContext.suspend();
+  if (recorder) {
+    recordingCanceled = true;
+    recorder.stop();
+  }
+  resetAudioGraph();
+  stopKaraoke();
+  playBtn.disabled = false;
+});
+
 
 async function wait(s) {
   return new Promise(res => setTimeout(res, 1000*s));
 }
 
-function resetReplayBtn() {
-  replayBtn.textContent = "Play your last recording";
-  if (recordedAudio) {
-    recordedAudio.pause();
-    recordedAudio = null;
-  }
-}
-
-function stopRecording({ cancel } = { cancel: false }) {
-  recordingCanceled = cancel;
-  ref.pause();
-  stream.getAudioTracks()[0].stop();
-  recorder.stop();
-}
-
-recordBtn.addEventListener("click", async () => {
-  if (onAir) {
-    onAir = false;
-    stopRecording({ cancel: true });
-  }
-  else {
-    onAir = true;
-    replayBtn.hidden = true;
-    if (recordedAudio) {
-      recordedAudio.pause();
-      recordedAudio = null;
-    }
-    [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = true);
-
-    // Stop ref playback in case it's running and set the source again to force
-    // currentTime to 0 again (file is not seekable so setting currentTime does
-    // not work).
-    ref.pause();
-    ref.src = "audios/reference.webm";
-
-    // Prepare recorder
-    stream = await navigator.mediaDevices.getUserMedia({audio: true});
-    let mimeType = "audio/webm";
-    if (!MediaRecorder.isTypeSupported("audio/webm")) {
-      mimeType = "audio/mpeg";
-    }
-    document.getElementById("format").value = mimeType;
-    recorder = new MediaRecorder(stream, {mimeType});
-    recordedChunks = [];
-    recorder.addEventListener('dataavailable', event => recordedChunks.push(event.data));
-    recorder.addEventListener('stop', () => {
-      if (!recordingCanceled) {
-        // Allow user to listen to and upload resulting recording
-        recording = new Blob(recordedChunks);
-        [...form.querySelectorAll("input,button,select")].forEach(n => n.disabled = false);
-        document.getElementById("uploader").classList.remove("disabled");
-        replayBtn.disabled = false;
-        replayBtn.hidden = false;
-      }
-      ref.controls = true;
-      recordBtn.textContent = "Re-record";
-    });
-
-    // Do a 3.. 2.. 1.. dance
-    recordBtn.textContent = "3.. 2.. 1..";
-    recordBtn.disabled = true;
-    tone.src = "audios/tone.webm";
-    tone.play();
-    for (i = 3; i > 0; i--) {
-      if (i == 1) {
-        tone.pause();
-      }
-      karaoke.classList.add("countdown");
-      karaoke.textContent = i;
-      await wait(1);
-    }
-    karaoke.textContent = "";
-    karaoke.classList.remove("countdown");
-    recordBtn.textContent = "Cancel recording";
-    recordBtn.disabled = false;
-
-    // Start recording and playback of reference file
-    recorder.start();
-    ref.controls = false;
-    ref.play();
-  }
-});
-
-replayBtn.addEventListener("click", () => {
-  if (recordedAudio) {
-    resetReplayBtn();
-  }
-  else {
-    replayBtn.textContent = "Stop playback";
-    recordedAudio = new Audio();
-    recordedAudio.src = URL.createObjectURL(recording);
-    recordedAudio.play();
-    recordedAudio.addEventListener("ended", resetReplayBtn);
-  }
-});
-
-ref.addEventListener("playing", resetReplayBtn);
-
-ref.addEventListener("ended", () => {
-  if (onAir) {
-    onAir = false;
-    stopRecording();
-  }
-});
 
 uploadBtn.addEventListener("click", async (e) => {
   e.preventDefault();

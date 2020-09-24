@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="style.css">
   <script>
      if (!window.MediaRecorder) {
        document.write(
@@ -42,26 +43,27 @@
       <section>
         <h2>Recorder</h2>
         <p>Put a headset on, and get ready to record yourself singing <a href="https://en.wikipedia.org/wiki/Fr%C3%A8re_Jacques">Frère Jacques</a> in the language of your choice (or with the instrument of your choice), following the pace and the tone set by the audio track.</p>
+
+        <p class="row">
+          <button class="three columns button-alert" id="record" disabled><span title="Record">⏺</span><br/><span>Record yourself</span></button>
+          <button class="three columns" id="play" disabled><span title="Play">▶</span><br/><span id="play-label">Play reference</span></button>
+          <button class="three columns" id="pause" disabled><span title="Pause">⏸︎</span><br/><span>Pause</span></button>
+          <button class="three columns" id="stop" disabled><span title="stop">⏹︎</span><br/><span id="stop-label">Stop</span></button>
+        </p>
+
         <div id=karaoke aria-live=polite>
           
         </div>
         <div class=row>
-          <div class="five columns">
-            <audio controls src="audios/reference.webm" id=ref></audio>
-          </div>
-          <div class="seven columns">
-            <label>Show lyrics/notes in <select id=lang name="lang">
-                <optgroup label="Lyrics language">
-                </optgroup>
-                <optgroup label="Notes">
-                  <option value="ABC">ABC Notation</option>
-                  <option value="doremi">Do Re Mi</option>
-                </optgroup>
-            </select></label>
-          </div>
+          <label>Show lyrics/notes in <select id=lang name="lang">
+              <optgroup label="Lyrics language">
+              </optgroup>
+              <optgroup label="Notes">
+                <option value="ABC">ABC Notation</option>
+                <option value="doremi">Do Re Mi</option>
+              </optgroup>
+          </select></label>
         </div>
-    <button class=button-primary id=record>Record yourself</button>
-    <button disabled id="playrecord" hidden>Play your last recording</button>
       </section>
       <section id=uploader class=disabled>
         <h2>Uploader</h2>
