@@ -21,7 +21,6 @@ const preferedLanguage = (navigator.language || "en").split("-")[0];
 let selectedLang = preferedLanguage;
 let langs = {}, lyrics = {};
 let toneDecodedAudio = null;
-let refBlob = null;
 let refDecodedAudio = null;
 let onAir = false;
 let customImage = false;
@@ -227,10 +226,6 @@ function stopKaraoke() {
     .then(buffer => new Promise((res, rej) => audioContext.decodeAudioData(buffer, res, rej)));
   refDecodedAudio = await fetch(`audios/reference.${audioFormat}`)
     .then(r => r.arrayBuffer())
-    .then(buffer => {
-      refBlob = new Blob([buffer]);
-      return buffer;
-    })
     .then(buffer => new Promise((res, rej) => audioContext.decodeAudioData(buffer, res, rej)));
 
   langs = await fetch("lang.json").then(r => r.json());
