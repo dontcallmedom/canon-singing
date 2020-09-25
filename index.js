@@ -10,9 +10,11 @@ const port = process.env.PORT || 8080;
 
 const app = express();
 app.use(express.static('public'));
+
 app.use('/audios', express.static('_submissions/audio'));
 app.use('/covers', express.static('_submissions/cover'));
 app.use('/lib/file-saver', express.static('node_modules/file-saver/dist/FileSaver.min.js'));
+app.use('/lib/audio-recorder-polyfill', express.static('node_modules/audio-recorder-polyfill'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(fileUpload());
 
