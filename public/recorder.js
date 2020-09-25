@@ -98,23 +98,11 @@ async function prepareCountdownAndReferencePlayback() {
   startTime = audioContext.currentTime;
   playbackNode = audioContext.createGain();
 
-  const toneNode1 = audioContext.createBufferSource();
-  toneNode1.buffer = toneDecodedAudio;
-  toneNode1.start(startTime);
-  toneNode1.stop(startTime + 1);
-  toneNode1.connect(playbackNode);
-
-  const toneNode2 = audioContext.createBufferSource();
-  toneNode2.buffer = toneDecodedAudio;
-  toneNode2.start(startTime + 1);
-  toneNode2.stop(startTime + 2);
-  toneNode2.connect(playbackNode);
-
-  const toneNode3 = audioContext.createBufferSource();
-  toneNode3.buffer = toneDecodedAudio;
-  toneNode3.start(startTime + 2);
-  toneNode3.stop(startTime + 3);
-  toneNode3.connect(playbackNode);
+  const toneNode = audioContext.createBufferSource();
+  toneNode.buffer = toneDecodedAudio;
+  toneNode.start(startTime);
+  toneNode.stop(startTime + 2);
+  toneNode.connect(playbackNode);
 
   refNode = audioContext.createBufferSource();
   refNode.buffer = refDecodedAudio;
